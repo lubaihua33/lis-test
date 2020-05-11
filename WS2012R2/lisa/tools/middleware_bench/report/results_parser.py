@@ -987,12 +987,10 @@ class TCPLogsReader(BaseLogsReader):
 
         with open(log_file, 'r') as fl:
             for x in fl:
-                log.info('x: {}' .format(x))
                 if not log_dict.get('Throughput_Gbps', None):
                     throughput = re.match('.+INFO:.+throughput.+:([0-9.]+)', x)
                     if throughput:
                         log_dict['Throughput_Gbps'] = throughput.group(1).strip()
-                        log.info('og_dict[Throughput_Gbps]: {}' .format(log_dict['Throughput_Gbps']))
                 if not log_dict.get('PacketSize_KBytes', None):
                     pkg_size = re.match('\s*Average\s*Package\s*Size:\s*([0-9.]+)', x)
                     if pkg_size:

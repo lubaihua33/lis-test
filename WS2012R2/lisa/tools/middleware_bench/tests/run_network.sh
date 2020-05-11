@@ -47,7 +47,7 @@ then
     sudo apt install -y aptitude
     printf '.\n.\n.\n.\nY\nY\n' |sudo aptitude install build-essential >> ${LOG_FILE}
     sudo apt -y install build-essential >> ${LOG_FILE}
-    sudo apt -y install sysstat zip bc >> ${LOG_FILE}
+    sudo apt -y install sysstat zip bc cmake>> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt update"
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt install -y aptitude"
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "printf '.\n.\n.\n.\nY\nY\n' |sudo aptitude install build-essential"
@@ -55,7 +55,7 @@ then
 elif [[ ${distro} == *"Amazon"* ]]
 then
     sudo yum clean dbcache >> ${LOG_FILE}
-    sudo yum -y install sysstat zip bc git gcc automake autoconf rpm >> ${LOG_FILE}
+    sudo yum -y install sysstat zip bc git gcc automake autoconf rpm cmake>> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo yum clean dbcache" >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo yum -y install sysstat zip bc git gcc automake autoconf rpm cmake" >> ${LOG_FILE}
 else
@@ -72,14 +72,14 @@ then
     cd /tmp/ntttcp-for-linux/src; sudo make && sudo make install
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/ntttcp-for-linux" >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/ntttcp-for-linux/src; sudo make && sudo make install" >> ${LOG_FILE}
-    cd /tmp; git clone https://github.com/Microsoft/lagscope
-    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install
+    cd /tmp; git clone https://github.com/Microsoft/lagscope >> ${LOG_FILE}
+    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/lagscope" >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install" >> ${LOG_FILE}
 elif [[ ${TEST_TYPE} == "latency" ]]
 then
     cd /tmp; git clone https://github.com/Microsoft/lagscope
-    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install
+    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/lagscope" >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install" >> ${LOG_FILE}
 elif [[ ${TEST_TYPE} == "UDP" ]]
@@ -194,7 +194,7 @@ function run_ntttcp ()
     sleep 5
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
-    sudo lagscope -s${SERVER} -t 2 -V 4 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log"
+    sudo lagscope -s${SERVER} -t2 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log"
     sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 2  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     current_tx_bytes=$(get_tx_bytes)
     current_tx_pkts=$(get_tx_pkts)
