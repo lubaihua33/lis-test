@@ -986,10 +986,11 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['TestDate'] = summary['date']
         log_dict['GuestDistro'] = summary['guest_os']
         log_dict['GuestOSType'] = 'Linux'
-
+        
+        log.info('log_file: {}' .format(log_file))
         with open(log_file, 'r') as fl:
             for x in fl:
-                log.info('x:' .format(x)
+                log.info('x: {}' .format(x))
                 if not log_dict.get('Throughput_Gbps', None):
                     throughput = re.match('.+throughput.+:([0-9.]+)', x)
                     log.info('throughput: {}' .format(throughput))
