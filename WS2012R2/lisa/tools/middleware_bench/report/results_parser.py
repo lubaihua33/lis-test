@@ -224,13 +224,11 @@ class BaseLogsReader(object):
         """
         list_log_dict = []
         log_files = []
-        print(self.log_path)
         if isinstance(self.log_path, list):
             for path in self.log_path:
                 log_files.extend(self.get_log_files(path))
         else:
             log_files.extend(self.get_log_files(self.log_path))
-        print(log_files)
         for log_file in log_files:
             f_match = re.match(self.log_matcher, os.path.basename(log_file))
             if not f_match:
@@ -988,14 +986,11 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['TestDate'] = summary['date']
         log_dict['GuestDistro'] = summary['guest_os']
         log_dict['GuestOSType'] = 'Linux'
-
-        log.info('log_file: {}' .format(log_file))
         with open(log_file, 'r') as fl:
             for x in fl:
                 log.info('x: {}' .format(x))
                 if not log_dict.get('Throughput_Gbps', None):
-                    throughput = re.match('.+throughput.+:([0-9.]+)', x)
-                    log.info('throughput: {}' .format(throughput))
+                    throughput = re.match('.+INFO:.+throughput.+:([0-9.]+)', x)
                     if throughput:
                         log_dict['Throughput_Gbps'] = throughput.group(1).strip()
                         log.info('og_dict[Throughput_Gbps]: {}' .format(log_dict['Throughput_Gbps']))
