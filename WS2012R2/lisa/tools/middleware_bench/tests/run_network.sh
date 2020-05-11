@@ -73,15 +73,15 @@ then
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/ntttcp-for-linux" >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/ntttcp-for-linux/src; sudo make && sudo make install" >> ${LOG_FILE}
     cd /tmp; git clone https://github.com/Microsoft/lagscope
-    cd /tmp/lagscope/src; sudo make && sudo make install
+    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/lagscope" >> ${LOG_FILE}
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope/src; sudo make && sudo make install" >> ${LOG_FILE}
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install" >> ${LOG_FILE}
 elif [[ ${TEST_TYPE} == "latency" ]]
 then
     cd /tmp; git clone https://github.com/Microsoft/lagscope
-    cd /tmp/lagscope/src; sudo make && sudo make install
+    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/lagscope" >> ${LOG_FILE}
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope/src; sudo make && sudo make install" >> ${LOG_FILE}
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install" >> ${LOG_FILE}
 elif [[ ${TEST_TYPE} == "UDP" ]]
 then
     TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024)
@@ -194,7 +194,7 @@ function run_ntttcp ()
     sleep 5
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
-    sudo lagscope -s${SERVER} -t 5 -V 4 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log"
+    sudo lagscope -s${SERVER} -t 60 -V 4 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log"
     sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 5  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     current_tx_bytes=$(get_tx_bytes)
     current_tx_pkts=$(get_tx_pkts)
@@ -217,14 +217,14 @@ function run_iperf_parallel(){
     while [ ${number_of_connections} -gt ${MAX_STREAMS} ]; do
         number_of_connections=$(($number_of_connections - $MAX_STREAMS))
         logfile="/tmp/network${TEST_TYPE}/${current_test_threads}-p${port}-l${buffer}-iperf3.log"
-        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -l ${buffer} -P ${MAX_STREAMS} -t 5 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
+        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -l ${buffer} -P ${MAX_STREAMS} -t 60 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
         port=$(($port + 1))
         PID_LIST+=" $pid"
     done
     if [ ${number_of_connections} -gt 0 ]
     then
         logfile="/tmp/network${TEST_TYPE}/${current_test_threads}-p${port}-l${buffer}-iperf3.log"
-        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -l ${buffer} -P ${number_of_connections} -t 5 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
+        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -l ${buffer} -P ${number_of_connections} -t 60 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
         PID_LIST+=" $pid"
     fi
 
@@ -267,7 +267,7 @@ function run_single_tcp()
     sleep 10
     ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo iperf3 -s -4 -p ${port} -i 60 -D" >> ${LOG_FILE}
     sleep 3
-    sudo iperf3 -c ${SERVER} -p ${port} -4 -b 0 -l ${current_test_buffer} -P 1 -t 5 --get-server-output -i 60 > /tmp/network${TEST_TYPE}/${current_test_buffer}-iperf3.log
+    sudo iperf3 -c ${SERVER} -p ${port} -4 -b 0 -l ${current_test_buffer} -P 1 -t 60 --get-server-output -i 60 > /tmp/network${TEST_TYPE}/${current_test_buffer}-iperf3.log
 }
 
 function run_custom()
@@ -291,7 +291,7 @@ function run_custom()
     iostat -x -d 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_buffer}.iostat.netio.sender.log &
     vmstat 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_buffer}.vmstat.netio.sender.log &
 
-    sudo iperf3 -c ${SERVER} -p ${port} -4 -b 0 -l ${current_test_buffer} -P 64 -t 5 --get-server-output -i 60 > /tmp/network${TEST_TYPE}/${current_test_buffer}-iperf3.log
+    sudo iperf3 -c ${SERVER} -p ${port} -4 -b 0 -l ${current_test_buffer} -P 64 -t 60 --get-server-output -i 60 > /tmp/network${TEST_TYPE}/${current_test_buffer}-iperf3.log
 
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f sar"
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f iostat"
