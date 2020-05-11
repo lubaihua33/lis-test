@@ -235,7 +235,6 @@ class BaseLogsReader(object):
                 continue
             log_dict = dict.fromkeys(self.headers, '')
             collected_data = self.collect_data(f_match, log_file, log_dict)
-            print(collected_data)
             if collected_data == None:
                 continue
             elif type(collected_data) is list:
@@ -254,7 +253,6 @@ class BaseLogsReader(object):
                         ret_tuple += (col[i],)
                 return ret_tuple
             list_log_dict = sorted(list_log_dict, key=cast_int_column)
-        print(list_log_dict)
         return list_log_dict
 
 
@@ -986,6 +984,7 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['TestDate'] = summary['date']
         log_dict['GuestDistro'] = summary['guest_os']
         log_dict['GuestOSType'] = 'Linux'
+
         with open(log_file, 'r') as fl:
             for x in fl:
                 log.info('x: {}' .format(x))
@@ -1014,8 +1013,7 @@ class TCPLogsReader(BaseLogsReader):
                 if latency:
                     unit = latency.group(2).strip()
                     log_dict['Latency_ms'] = self._convert(float(latency.group(1).strip()),
-                                                           self.UNIT[unit], self.UNIT['ms']) 
-                                                
+                                                           self.UNIT[unit], self.UNIT['ms'])
         return log_dict
 
 
