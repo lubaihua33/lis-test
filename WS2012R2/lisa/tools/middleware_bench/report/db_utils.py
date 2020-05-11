@@ -225,7 +225,6 @@ def upload_results(localpath=None, table_name=None, results_path=None, parser=No
 
     test_results = parser(log_path=results_path, **kwargs).process_logs()
 
-    pprint.pprint(test_results)
     if 'linux' in sys.platform:
         driver = config.get('Credentials', 'Driver_linux')
     else:

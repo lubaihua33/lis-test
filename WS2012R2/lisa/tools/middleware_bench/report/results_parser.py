@@ -235,7 +235,7 @@ class BaseLogsReader(object):
                 continue
             log_dict = dict.fromkeys(self.headers, '')
             collected_data = self.collect_data(f_match, log_file, log_dict)
-            pprint.pprint(collected_data)
+            print(collected_data)
             if collected_data == None:
                 continue
             elif type(collected_data) is list:
@@ -254,6 +254,7 @@ class BaseLogsReader(object):
                         ret_tuple += (col[i],)
                 return ret_tuple
             list_log_dict = sorted(list_log_dict, key=cast_int_column)
+        print(list_log_dict)
         return list_log_dict
 
 
@@ -990,8 +991,10 @@ class TCPLogsReader(BaseLogsReader):
             for x in fl:
                 if not log_dict.get('Throughput_Gbps', None):
                     throughput = re.match('.+throughput.+:([0-9.]+)', x)
+                    log.info('throughput: {}' .format(throughput))
                     if throughput:
                         log_dict['Throughput_Gbps'] = throughput.group(1).strip()
+                        log.info('og_dict[Throughput_Gbps]: {}' .format(log_dict['Throughput_Gbps']))
                 if not log_dict.get('PacketSize_KBytes', None):
                     pkg_size = re.match('\s*Average\s*Package\s*Size:\s*([0-9.]+)', x)
                     if pkg_size:
@@ -1013,8 +1016,7 @@ class TCPLogsReader(BaseLogsReader):
                     unit = latency.group(2).strip()
                     log_dict['Latency_ms'] = self._convert(float(latency.group(1).strip()),
                                                            self.UNIT[unit], self.UNIT['ms']) 
-        pprint.pprint(log_dict['Throughput_Gbps'])                                                                                                           
-        pprint.pprint(log_dict)                                                   
+                                                
         return log_dict
 
 
