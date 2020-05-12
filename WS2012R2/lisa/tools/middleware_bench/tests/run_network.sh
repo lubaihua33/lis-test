@@ -73,15 +73,15 @@ then
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/ntttcp-for-linux" >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/ntttcp-for-linux/src; sudo make && sudo make install" >> ${LOG_FILE}
     cd /tmp; git clone https://github.com/Microsoft/lagscope >> ${LOG_FILE}
-    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install >> ${LOG_FILE}
+    cd /tmp/lagscope; sudo ./do-cmake.sh build && sudo ./do-cmake.sh install >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/lagscope" >> ${LOG_FILE}
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install" >> ${LOG_FILE}
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; sudo ./do-cmake.sh build && sudo ./do-cmake.sh install" >> ${LOG_FILE}
 elif [[ ${TEST_TYPE} == "latency" ]]
 then
     cd /tmp; git clone https://github.com/Microsoft/lagscope
-    cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install >> ${LOG_FILE}
+    cd /tmp/lagscope; sudo ./do-cmake.sh build && sudo ./do-cmake.sh install >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/lagscope" >> ${LOG_FILE}
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; ./do-cmake.sh build && ./do-cmake.sh install" >> ${LOG_FILE}
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp/lagscope; sudo ./do-cmake.sh build && sudo ./do-cmake.sh install" >> ${LOG_FILE}
 elif [[ ${TEST_TYPE} == "UDP" ]]
 then
     TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024)
