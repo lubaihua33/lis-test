@@ -147,7 +147,10 @@ class AWSConnector:
             filters={'name':'ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server*', 'root_device_type':'ebs', 'owner-id':'099720109477'}
             log.info("ubuntu_1604")
         if os_type == 'ubuntu_1804':
-            filters={'name':'ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server*', 'root_device_type':'ebs', 'owner-id':'099720109477'}
+            if self.instancetype == "m6g.4xlarge":
+                filters={'name':'ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-arm64-server*', 'root_device_type':'ebs', 'owner-id':'099720109477'}
+            else:
+                filters={'name':'ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server*', 'root_device_type':'ebs', 'owner-id':'099720109477'}
             log.info("ubuntu_1804")
         elif os_type == 'amazon_linux':
             filters={'name':'amzn-ami-hvm-*-x86_64-gp2', 'architecture': 'x86_64','root_device_type':'ebs'}
