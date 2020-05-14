@@ -194,7 +194,7 @@ function run_ntttcp ()
     sleep 5
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
-    sudo lagscope -s${SERVER} -t60 -V > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
+    sudo lagscope -s${SERVER} -t60 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
     sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     current_tx_bytes=$(get_tx_bytes)
     current_tx_pkts=$(get_tx_pkts)
@@ -300,11 +300,11 @@ function run_custom()
     sudo pkill -f iostat
     sudo pkill -f vmstat
 }
-t
+
 if [[ ${TEST_TYPE} == "TCP" ]]
 then
     ulimit -n 204800
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo ulimit -n 204800"
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800"
     for thread in "${TEST_THREADS[@]}"
     do
         run_ntttcp ${thread}
