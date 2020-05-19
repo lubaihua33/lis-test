@@ -70,9 +70,9 @@ if [[ ${TEST_TYPE} == "TCP" ]]
 then
     TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 6144 8192 10240)
     cd /tmp; wget https://github.com/Microsoft/ntttcp-for-linux/archive/${ntttcp_version}.tar.gz
-	tar -zxvf ${ntttcp_version}.tar.gz;	pushd ntttcp-for-linux-${ntttcp_version/v/}/src/ && make && make install; popd
+	cd /tmp; tar -zxvf ${ntttcp_version}.tar.gz;	pushd ntttcp-for-linux-${ntttcp_version/v/}/src/ && make && make install; popd
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; wget https://github.com/Microsoft/ntttcp-for-linux/archive/${ntttcp_version}.tar.gz" >> ${LOG_FILE}
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "tar -zxvf ${ntttcp_version}.tar.gz;	pushd ntttcp-for-linux-${ntttcp_version/v/}/src/ && make && make install; popd" >> ${LOG_FILE}
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; tar -zxvf ${ntttcp_version}.tar.gz;	pushd ntttcp-for-linux-${ntttcp_version/v/}/src/ && make && make install; popd" >> ${LOG_FILE}
     cd /tmp; git clone https://github.com/Microsoft/lagscope >> ${LOG_FILE}
     cd /tmp/lagscope; sudo ./do-cmake.sh build && sudo ./do-cmake.sh install >> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/lagscope" >> ${LOG_FILE}
