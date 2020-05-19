@@ -167,7 +167,7 @@ function run_lagscope()
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f lagscope"
     ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo lagscope -r${SERVER}"
     sleep 5
-    sudo lagscope -s${SERVER} -n1000000 -i0 -V > "/tmp/network${TEST_TYPE}/lagscope.log"
+    sudo lagscope -s${SERVER} -n1000000 -i0 -H > "/tmp/network${TEST_TYPE}/lagscope.log"
     sleep 5
     sudo pkill -f lagscope
 }
