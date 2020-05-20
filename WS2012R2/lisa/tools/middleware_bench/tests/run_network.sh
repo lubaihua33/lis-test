@@ -188,7 +188,7 @@ function run_ntttcp ()
     fi
     sudo pkill -f ntttcp
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f ntttcp"
-    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo ntttcp -r${SERVER} -P $num_threads_P -e -W 1 -C 1 > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
+    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo ntttcp -r${SERVER} -P $num_threads_P -e -W 1 -C 1 -K ens5 -R > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
     sudo pkill -f lagscope
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f lagscope"
     ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo lagscope -r${SERVER}"
@@ -196,7 +196,7 @@ function run_ntttcp ()
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
     sudo lagscope -s${SERVER} -t60 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
-    sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
+    sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 -K ens5 -R> "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     current_tx_bytes=$(get_tx_bytes)
     current_tx_pkts=$(get_tx_pkts)
     bytes_new=`(expr ${current_tx_bytes} - ${previous_tx_bytes})`
