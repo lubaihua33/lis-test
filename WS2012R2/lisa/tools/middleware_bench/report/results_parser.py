@@ -950,7 +950,10 @@ class TCPLogsReader(BaseLogsReader):
                  region=None, host_type=None, instance_size=None):
         super(TCPLogsReader, self).__init__(log_path)
         self.headers = ['NumberOfConnections', 'Throughput_Gbps', 'Latency_ms',
-                        'PacketSize_KBytes', 'IPVersion', 'ProtocolType']
+                        'PacketSize_KBytes', 'SenderCyclesPerByte', 'ReceiverCyclesPerByte',
+                        'SenderCpuIdlePercent', 'ReceiverCpuIdlePercent',
+                        'RetransSegments', 'LostRetrans', 'RetransFail',
+                        'IPVersion', 'ProtocolType']
         self.sorter = ['NumberOfConnections']
         self.test_case_name = test_case_name
         self.data_path = data_path
@@ -978,6 +981,13 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['Throughput_Gbps'] = 0
         log_dict['Latency_ms'] = 0
         log_dict['PacketSize_KBytes'] = 0
+        log_dict['SenderCyclesPerByte'] = 0
+        log_dict['ReceiverCyclesPerByte'] = 0
+        log_dict['SenderCpuIdlePercent'] = 0
+        log_dict['ReceiverCpuIdlePercent'] = 0
+        log_dict['RetransSegments'] = 0
+        log_dict['LostRetrans'] = 0
+        log_dict['RetransFail'] = 0
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -995,6 +1005,41 @@ class TCPLogsReader(BaseLogsReader):
                     pkg_size = re.match('\s*Average\s*Package\s*Size:\s*([0-9.]+)', x)
                     if pkg_size:
                         log_dict['PacketSize_KBytes'] = pkg_size.group(1).strip()
+                if not log_dict.get('SenderCyclesPerByte', None):
+                    cycles_per_byte = re.match('.+INFO:.+cycles/byte.+:([0-9.]+)', x)
+                    if cycles_per_byte:
+                        log_dict['SenderCyclesPerByte'] = cycles_per_byte.group(1).strip()
+                if not log_dict.get('SenderCpuIdlePercent', None):
+                    cpu_idle = re.match('.+INFO:.+idle.+:([0-9.]+)', x)
+                    if cpu_idle:
+                        log_dict['SenderCpuIdlePercent'] = cpu_idle.group(1).strip()
+                if not log_dict.get('RetransSegments', None):
+                    retrans_segments = re.match('.+INFO:.+retrans_segments/sec.+:([0-9.]+)', x)
+                    if retrans_segments:
+                        log_dict['RetransSegments'] = retrans_segments.group(1).strip()
+                if not log_dict.get('LostRetrans', None):
+                    lost_retrans = re.match('.+INFO:.+lost_retrans/sec.+:([0-9.]+)', x)
+                    if lost_retrans:
+                        log_dict['LostRetrans'] = .group(1).strip()
+                if not log_dict.get('RetransFail', None):
+                    retrans_fail = re.match('.+INFO:.+retrans_fail/sec.+:([0-9.]+)', x)
+                    if retrans_fail:
+                        log_dict['RetransFail'] = retrans_fail.group(1).strip()
+
+        receiver_file = os.path.join(os.path.dirname(os.path.abspath(log_file)),
+                                     '{}_ntttcp-receiver.log'.format(log_dict['NumberOfConnections']))
+        if os.path.exists(receiver_file):
+            with open(receiver_file, 'r') as fl:
+                for x in fl:
+                    if not log_dict.get('ReceiverCyclesPerByte', None):
+                        cycle = re.match('.+INFO:.+cycles/byte.+:([0-9.]+)', x)
+                        if cycle:
+                            log_dict['ReceiverCyclesPerByte'] = cycle.group(1).strip()
+                    if not log_dict.get('ReceiverCpuIdlePercent', None):
+                        cpu_idle = re.match('.+INFO:.+idle.+:([0-9.]+)', x)
+                        if cpu_idle:
+                            log_dict['ReceiverCpuIdlePercent'] = cpu_idle.group(1).strip()
+                           
         lat_file = os.path.join(os.path.dirname(os.path.abspath(log_file)),
                                 '{}_lagscope.log'.format(log_dict['NumberOfConnections']))
         with open(lat_file, 'r') as fl:

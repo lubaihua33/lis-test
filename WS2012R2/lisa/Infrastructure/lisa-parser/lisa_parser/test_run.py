@@ -313,6 +313,13 @@ class PerfTestRun(TestRun):
     def prep_for_ntttcp(table_dict, test_case_obj):
         table_dict['NumberOfConnections'] = int(test_case_obj.perf_dict['NumberOfConnections'])
         table_dict['Throughput_Gbps'] = float(test_case_obj.perf_dict['Throughput_Gbps'])
+        table_dict['CyclesPerByte_Sender'] = float(test_case_obj.perf_dict['CyclesPerByte_Sender'])
+        table_dict['ReceiverCyclesPerByte'] = float(test_case_obj.perf_dict['ReceiverCyclesPerByte'])
+        table_dict['SenderCpuIdlePercent'] = float(test_case_obj.perf_dict['SenderCpuIdlePercent'])
+        table_dict['ReceiverCpuIdlePercent'] = float(test_case_obj.perf_dict['ReceiverCpuIdlePercent'])
+        table_dict['RetransSegments'] = float(test_case_obj.perf_dict['RetransSegments'])
+        table_dict['LostRetrans'] = float(test_case_obj.perf_dict['LostRetrans'])
+        table_dict['RetransFail'] = float(test_case_obj.perf_dict['RetransFail'])
         table_dict['Latency_ms'] = float(test_case_obj.perf_dict['AverageLatency_ms'])
         table_dict['PacketSize_KBytes'] = float(test_case_obj.perf_dict['PacketSize_KBytes'])
         table_dict['SenderCyclesPerByte'] = float(test_case_obj.perf_dict['SenderCyclesPerByte'])

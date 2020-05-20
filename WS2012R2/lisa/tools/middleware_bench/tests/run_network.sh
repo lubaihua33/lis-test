@@ -196,7 +196,7 @@ function run_ntttcp ()
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
     sudo lagscope -s${SERVER} -t60 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
-    sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 -K ens5 -R> "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
+    sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 -K ens5 -R > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     current_tx_bytes=$(get_tx_bytes)
     current_tx_pkts=$(get_tx_pkts)
     bytes_new=`(expr ${current_tx_bytes} - ${previous_tx_bytes})`
@@ -344,6 +344,7 @@ fi
 LogMsg "Kernel Version : `uname -r`"
 LogMsg "Guest OS : ${distro}"
 
+scp -o StrictHostKeyChecking=no ${USER}@${SERVER}:/tmp/network${TEST_TYPE}/* /tmp/network${TEST_TYPE}/ >> ${LOG_FILE}
 cd /tmp
 zip -r network.zip . -i network${TEST_TYPE}/* >> ${LOG_FILE}
 zip -r network.zip . -i summary.log >> ${LOG_FILE}
