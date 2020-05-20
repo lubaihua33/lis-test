@@ -1020,7 +1020,7 @@ class TCPLogsReader(BaseLogsReader):
                 if not log_dict.get('LostRetrans', None):
                     lost_retrans = re.match('.+INFO:.+lost_retrans/sec.+:([0-9.]+)', x)
                     if lost_retrans:
-                        log_dict['LostRetrans'] = .group(1).strip()
+                        log_dict['LostRetrans'] = lost_retrans.group(1).strip()
                 if not log_dict.get('RetransFail', None):
                     retrans_fail = re.match('.+INFO:.+retrans_fail/sec.+:([0-9.]+)', x)
                     if retrans_fail:
