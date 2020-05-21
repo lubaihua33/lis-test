@@ -85,7 +85,7 @@ then
 elif [[ ${TEST_TYPE} == "UDP" ]]
 then
     TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024)
-    MAX_STREAMS=128
+    MAX_STREAMS=64
     TEST_BUFFERS=('1k' '8k')
     if [[ ${distro} == *"Ubuntu"* ]]
     then
@@ -174,6 +174,7 @@ function run_lagscope()
 function run_ntttcp ()
 {
     current_test_threads=$1
+    current_test_type=$2
     LogMsg "======================================"
     LogMsg "Running NTTTCP thread= ${current_test_threads}"
     LogMsg "======================================"
@@ -187,53 +188,12 @@ function run_ntttcp ()
     fi
     sudo pkill -f ntttcp
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f ntttcp"
-    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
-    sudo pkill -f lagscope
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f lagscope"
-    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo lagscope -r${SERVER}"
-    sleep 5
-    previous_tx_bytes=$(get_tx_bytes)
-    previous_tx_pkts=$(get_tx_pkts)
-    sudo lagscope -s${SERVER} -t60 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
-    sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
-    current_tx_bytes=$(get_tx_bytes)
-    current_tx_pkts=$(get_tx_pkts)
-    bytes_new=`(expr ${current_tx_bytes} - ${previous_tx_bytes})`
-    pkts_new=`(expr ${current_tx_pkts} - ${previous_tx_pkts})`
-    avg_pkt_size=$(echo "scale=2;${bytes_new}/${pkts_new}/1024" | bc)
-    echo "Average Package Size: ${avg_pkt_size}" >> /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log
-    sleep 10
-    sudo pkill -f ntttcp
-    sudo pkill -f lagscope
-    previous_tx_bytes=${current_tx_bytes}
-    previous_tx_pkts=${current_tx_pkts}
-}
-
-function run_ntttcp_udp ()
-{
-    current_test_threads=$1
-    LogMsg "======================================"
-    LogMsg "Running NTTTCP thread= ${current_test_threads}"
-    LogMsg "======================================"
-    sudo sysctl -w net.core.rmem_max=67108864
-    sudo sysctl -w net.core.rmem_default=67108864
-    sudo sysctl -w net.core.wmem_default=67108864
-    sudo sysctl -w net.core.wmem_max=67108864
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.rmem_max=67108864"
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.rmem_default=67108864"
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.wmem_default=67108864"
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.wmem_max=67108864"
-    if [ ${current_test_threads} -lt 64 ]
+    if [[ ${current_test_type} == "tcp" ]]
     then
-        num_threads_P=${current_test_threads}
-        num_threads_n=1
+        ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
     else
-        num_threads_P=64
-        num_threads_n=$(($current_test_threads / $num_threads_P))
+        ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -u -b 1k -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
     fi
-    sudo pkill -f ntttcp
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f ntttcp"
-    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -u -b 1k -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
     sudo pkill -f lagscope
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f lagscope"
     ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo lagscope -r${SERVER}"
@@ -241,7 +201,12 @@ function run_ntttcp_udp ()
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
     sudo lagscope -s${SERVER} -t60 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
-    sudo ntttcp -s${SERVER} -u -b 1k -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
+    if [[ ${current_test_type} == "tcp" ]]
+    then
+        sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
+    else
+        sudo ntttcp -s${SERVER} -u -b 1k -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
+    fi
     current_tx_bytes=$(get_tx_bytes)
     current_tx_pkts=$(get_tx_pkts)
     bytes_new=`(expr ${current_tx_bytes} - ${previous_tx_bytes})`
@@ -263,14 +228,14 @@ function run_iperf_parallel(){
     while [ ${number_of_connections} -gt ${MAX_STREAMS} ]; do
         number_of_connections=$(($number_of_connections - $MAX_STREAMS))
         logfile="/tmp/network${TEST_TYPE}/${current_test_threads}-p${port}-l${buffer}-iperf3.log"
-        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -l ${buffer} -P ${MAX_STREAMS} -t 60 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
+        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -f g -l ${buffer} -P ${MAX_STREAMS} -t 60 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
         port=$(($port + 1))
         PID_LIST+=" $pid"
     done
     if [ ${number_of_connections} -gt 0 ]
     then
         logfile="/tmp/network${TEST_TYPE}/${current_test_threads}-p${port}-l${buffer}-iperf3.log"
-        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -l ${buffer} -P ${number_of_connections} -t 60 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
+        iperf3 -u -c ${SERVER} -p ${port} -4 -b 0 -f g -l ${buffer} -P ${number_of_connections} -t 60 --get-server-output -i 60 > ${logfile} 2>&1 & pid=$!
         PID_LIST+=" $pid"
     fi
 
@@ -289,7 +254,7 @@ function run_iperf_udp()
     server_iperf_instances=$((current_test_threads/${MAX_STREAMS}+port))
     for ((i=port; i<=server_iperf_instances; i++))
     do
-        ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "iperf3 -s -4 -p $i -i 60 -D"
+        ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "iperf3 -s -1 -f g -p $i -i 60 -D"
         sleep 1
     done
 
@@ -353,16 +318,24 @@ then
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800"
     for thread in "${TEST_THREADS[@]}"
     do
-        run_ntttcp ${thread}
+        run_ntttcp ${thread} "tcp"
     done
 elif [[ ${TEST_TYPE} == "UDP2" ]]
 then
     TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024)
+    sudo sysctl -w net.core.rmem_max=67108864
+    sudo sysctl -w net.core.rmem_default=67108864
+    sudo sysctl -w net.core.wmem_default=67108864
+    sudo sysctl -w net.core.wmem_max=67108864
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.rmem_max=67108864"
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.rmem_default=67108864"
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.wmem_default=67108864"
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sysctl -w net.core.wmem_max=67108864"
     ulimit -n 204800
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800"
     for thread in "${TEST_THREADS[@]}"
     do
-        run_ntttcp_udp ${thread}
+        run_ntttcp ${thread} "udp"
     done
 elif [[ ${TEST_TYPE} == "latency" ]]
 then
