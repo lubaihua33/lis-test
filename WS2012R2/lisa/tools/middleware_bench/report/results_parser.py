@@ -951,8 +951,8 @@ class TCPLogsReader(BaseLogsReader):
         super(TCPLogsReader, self).__init__(log_path)
         self.headers = ['NumberOfConnections', 'Throughput_Gbps', 'Latency_ms',
                         'PacketSize_KBytes', 'SenderCyclesPerByte', 'ReceiverCyclesPerByte',
-                        'SenderCpuIdlePercent', 'ReceiverCpuIdlePercent',
-                        'RetransSegments', 'LostRetrans', 'RetransFail',
+                        'SenderCpuUsePercent', 'ReceiverCpuUsePercent',
+                        'RetransSegments', 'LostRetrans', 'RetransFail', 'SenderCpuBusyPercent', 'ReceiverCpuBusyPercent',
                         'IPVersion', 'ProtocolType']
         self.sorter = ['NumberOfConnections']
         self.test_case_name = test_case_name
@@ -983,11 +983,13 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['PacketSize_KBytes'] = 0
         log_dict['SenderCyclesPerByte'] = 0
         log_dict['ReceiverCyclesPerByte'] = 0
-        log_dict['SenderCpuIdlePercent'] = 0
-        log_dict['ReceiverCpuIdlePercent'] = 0
+        log_dict['SenderCpuUsePercent'] = 0
+        log_dict['ReceiverCpuUsePercent'] = 0
         log_dict['RetransSegments'] = 0
         log_dict['LostRetrans'] = 0
         log_dict['RetransFail'] = 0
+        log_dict['SenderCpuBusyPercent'] = 0
+        log_dict['ReceiverCpuBusyPercent'] = 0
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1009,10 +1011,11 @@ class TCPLogsReader(BaseLogsReader):
                     cycles_per_byte = re.match('.+INFO:.+cycles/byte.+:([0-9.]+)', x)
                     if cycles_per_byte:
                         log_dict['SenderCyclesPerByte'] = cycles_per_byte.group(1).strip()
-                if not log_dict.get('SenderCpuIdlePercent', None):
+                if not log_dict.get('SenderCpuUsePercent', None):
                     cpu_idle = re.match('.+INFO:.+idle.+:([0-9.]+)', x)
                     if cpu_idle:
-                        log_dict['SenderCpuIdlePercent'] = cpu_idle.group(1).strip()
+                        cpu_idle_float = float(cpu_idle.group(1).strip())
+                        log_dict['SenderCpuUsePercent'] = str(float('%.2f' % (100 - cpu_idle_float)))
                 if not log_dict.get('RetransSegments', None):
                     retrans_segments = re.match('.+INFO:.+retrans_segments/sec.+:([0-9.]+)', x)
                     if retrans_segments:
@@ -1025,6 +1028,10 @@ class TCPLogsReader(BaseLogsReader):
                     retrans_fail = re.match('.+INFO:.+retrans_fail/sec.+:([0-9.]+)', x)
                     if retrans_fail:
                         log_dict['RetransFail'] = retrans_fail.group(1).strip()
+                if not log_dict.get('SenderCpuBusyPercent', None):
+                    cpu_busy = re.match('.+INFO:.+cpu busy \(all\).+:([0-9.]+)', x)
+                    if cpu_busy:
+                        log_dict['SenderCpuBusyPercent'] = cpu_busy.group(1).strip()
 
         receiver_file = os.path.join(os.path.dirname(os.path.abspath(log_file)),
                                      '{}_ntttcp-receiver.log'.format(log_dict['NumberOfConnections']))
@@ -1035,10 +1042,15 @@ class TCPLogsReader(BaseLogsReader):
                         cycle = re.match('.+INFO:.+cycles/byte.+:([0-9.]+)', x)
                         if cycle:
                             log_dict['ReceiverCyclesPerByte'] = cycle.group(1).strip()
-                    if not log_dict.get('ReceiverCpuIdlePercent', None):
+                    if not log_dict.get('ReceiverCpuUsePercent', None):
                         cpu_idle = re.match('.+INFO:.+idle.+:([0-9.]+)', x)
                         if cpu_idle:
-                            log_dict['ReceiverCpuIdlePercent'] = cpu_idle.group(1).strip()
+                            cpu_idle_float = float(cpu_idle.group(1).strip())
+                            log_dict['ReceiverCpuUsePercent'] = str(float('%.2f' % (100 - cpu_idle_float)))
+                    if not log_dict.get('ReceiverCpuBusyPercent', None):
+                        cpu_busy = re.match('.+INFO:.+cpu busy \(all\).+:([0-9.]+)', x)
+                        if cpu_busy:
+                            log_dict['ReceiverCpuBusyPercent'] = cpu_busy.group(1).strip()
                            
         lat_file = os.path.join(os.path.dirname(os.path.abspath(log_file)),
                                 '{}_lagscope.log'.format(log_dict['NumberOfConnections']))
@@ -1069,7 +1081,9 @@ class LatencyLogsReader(BaseLogsReader):
                  region=None, host_type=None, instance_size=None):
         super(LatencyLogsReader, self).__init__(log_path)
         self.headers = ['MaxLatency_us', 'AverageLatency_us', 'MinLatency_us',
-                        'Latency95Percentile_us', 'Latency99Percentile_us', 'IPVersion',
+                        'Latency95Percentile_us', 'Latency99Percentile_us',
+                        'Percentile_50', 'Percentile_75', 'Percentile_90', 'Percentile_99.9', 
+                        'Percentile_99.99', 'Percentile_99.999', 'IPVersion',
                         'ProtocolType']
         self.test_case_name = test_case_name
         self.data_path = data_path
@@ -1098,6 +1112,12 @@ class LatencyLogsReader(BaseLogsReader):
         log_dict['MaxLatency_us'] = 0
         log_dict['Latency95Percentile_us'] = 0
         log_dict['Latency99Percentile_us'] = 0
+        log_dict['Percentile_50'] = 0
+        log_dict['Percentile_75'] = 0
+        log_dict['Percentile_90'] = 0
+        log_dict['Percentile_99.9'] = 0
+        log_dict['Percentile_99.99'] = 0
+        log_dict['Percentile_99.999'] = 0
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1115,21 +1135,49 @@ class LatencyLogsReader(BaseLogsReader):
                     ip_proto = re.match('protocol:.+([A-Z]{3})', x)
                     if ip_proto:
                         log_dict['ProtocolType'] = ip_proto.group(1).strip()
+
                 min_latency = re.match('.+Minimum\s*=\s*([0-9.]+)\s*([a-z]+)', x)
                 if min_latency:
                     unit = min_latency.group(2).strip()
                     log_dict['MinLatency_us'] = self._convert(float(min_latency.group(1).strip()),
                                                               self.UNIT[unit], self.UNIT['us'])
+
                 avg_latency = re.match('.+Average\s*=\s*([0-9.]+)\s*([a-z]+)', x)
                 if avg_latency:
                     unit = avg_latency.group(2).strip()
                     log_dict['AverageLatency_us'] = self._convert(
                             float(avg_latency.group(1).strip()), self.UNIT[unit], self.UNIT['us'])
+
                 max_latency = re.match('.+Maximum\s*=\s*([0-9.]+)\s*([a-z]+)', x)
                 if max_latency:
                     unit = max_latency.group(2).strip()
                     log_dict['MaxLatency_us'] = self._convert(float(max_latency.group(1).strip()),
                                                               self.UNIT[unit], self.UNIT['us'])
+
+                Percentile_50 = re.match('.+50\%\s*([0-9.]+)', x)
+                if Percentile_50:
+                    log_dict['Percentile_50'] = Percentile_50.group(1).strip()
+
+                Percentile_75 = re.match('.+75\%\s*([0-9.]+)', x)
+                if Percentile_75:
+                    log_dict['Percentile_75'] = Percentile_75.group(1).strip()
+
+                Percentile_90 = re.match('.+90\%\s*([0-9.]+)', x)
+                if Percentile_90:
+                    log_dict['Percentile_90'] = Percentile_90.group(1).strip()
+
+                Percentile_99_9 = re.match('.+99.9\%\s*([0-9.]+)', x)
+                if Percentile_99_9:
+                    log_dict['Percentile_99.9'] = Percentile_99_9.group(1).strip()
+                    
+                Percentile_99_99 = re.match('.+99.99\%\s*([0-9.]+)', x)
+                if Percentile_99_99:
+                    log_dict['Percentile_99.99'] = Percentile_99_99.group(1).strip()
+
+                Percentile_99_999 = re.match('.+99.999\%\s*([0-9.]+)', x)
+                if Percentile_99_999:
+                    log_dict['Percentile_99.999'] = Percentile_99_999.group(1).strip()
+                
         return log_dict
 
 
