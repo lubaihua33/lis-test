@@ -198,6 +198,7 @@ class SetupTestEnv:
             elif self.provider == constants.AZURE:
                 disk_args['device'] = i
                 device.append('/dev/sd{}'.format(chr(99 + i)))
+                log.info('-----raid sd{}'.format(chr(99 + i)))
             elif self.provider == constants.GCE:
                 device.append('/dev/sd{}'.format(chr(98 + i)))
             self.connector.attach_disk(self.vms[vm_tag], disk_size=self.disk_size, **disk_args)
@@ -232,7 +233,7 @@ class SetupTestEnv:
             vm_tag = 1
         elif self.test_type == constants.DB_DISK:
             vm_tag = 2
-
+        log.info('-----raid {}'.format(self.raid))
         if self.raid and type(self.raid) is int:
             return self.attach_raid_disks(vm_tag, disk_args)
         else:
@@ -289,6 +290,7 @@ class SetupTestEnv:
                     self.ssh_client[ssh_raid].run("sed -i 's/\r//' /tmp/raid.sh")
                     self.ssh_client[ssh_raid].run('/tmp/raid.sh 0 {} {}'.format(raid, ' '.join(
                             self.device)))
+                    print(self.device)
                 bash_testname = 'run_{}.sh'.format(testname)
                 self.ssh_client[1].put_file(os.path.join(current_path, 'tests', bash_testname),
                                             '/tmp/{}'.format(bash_testname))
