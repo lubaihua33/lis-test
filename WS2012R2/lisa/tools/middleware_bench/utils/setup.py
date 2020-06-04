@@ -197,8 +197,7 @@ class SetupTestEnv:
                 device.append(disk_args['device'].replace('sd', 'xvd'))
             elif self.provider == constants.AZURE:
                 disk_args['device'] = i
-                device.append('/dev/sd{}'.format(chr(99 + i)))
-                log.info('-----raid sd{}'.format(chr(99 + i)))
+                device.append('/dev/sd{}'.format(chr(97 + i)))
             elif self.provider == constants.GCE:
                 device.append('/dev/sd{}'.format(chr(98 + i)))
             self.connector.attach_disk(self.vms[vm_tag], disk_size=self.disk_size, **disk_args)
