@@ -1399,6 +1399,11 @@ class StorageLogsReader(BaseLogsReader):
         log_dict['QDepth'] = int(f_match.group(3))
         log_dict['seq_read_iops'] = 0
         log_dict['seq_read_lat_usec'] = 0
+        log_dict['seq_read_iops_stdev'] = 0
+        log_dict['seq_read_lat_usec_stdev'] = 0
+        log_dict['seq_read_cpu_usr'] = 0
+        log_dict['seq_read_cpu_sys'] = 0
+        log_dict['seq_read_cpu_ctx'] = 0
         log_dict['rand_read_iops'] = 0
         log_dict['rand_read_lat_usec'] = 0
         log_dict['seq_write_iops'] = 0
@@ -1432,15 +1437,13 @@ class StorageLogsReader(BaseLogsReader):
                             log_dict[lat_key] = self._convert(float(lat.group(2).strip()),
                                                               self.UNIT[unit[:2]], self.UNIT['us'])
                     if not log_dict.get(iops_key, None):
-                        if 'Ubuntu' in log_dict['GuestDistro']:
-                            iops = re.match('.+iops=([0-9. ]+),', f_line)
-                        else:
-                            iops = re.match('.+IOPS=([0-9a-z. ]+),', f_line)
+                        iops = re.match('.+IOPS=([0-9a-z. ]+),', f_line)
                         if iops:
                             iops_digit = iops.group(1).strip()
                             if 'k' in iops_digit:
-                                iops_digit = float(iops_digit.split('k')[0]) * 1000
+                                iops_digit = int(float(iops_digit.split('k')[0]) * 1000)
                             log_dict[iops_key] = iops_digit
+
         return log_dict
 
 

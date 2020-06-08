@@ -60,9 +60,9 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     :param kernel: custom kernel name provided in localpath
     """
     disk_size = 0
-    raid = 12
+    raid = 0
     if provider == constants.AWS:
-        disk_size = 100
+        disk_size = 1024
     elif provider == constants.AZURE:
         disk_size = 513
     elif provider == constants.GCE:
