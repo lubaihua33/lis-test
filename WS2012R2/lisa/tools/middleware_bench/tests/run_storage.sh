@@ -26,8 +26,18 @@ function LogMsg() {
     echo $(date "+%a %b %d %T %Y") : ${1} >> ${LOG_FILE}
 }
 
-function get_AvailableDisks() {
+function get_AvailableDisks_azure() {
 	for disk in $(lsblk | grep "sd[a-z].*disk" | cut -d ' ' -f1);
+	do
+		if [ $(df | grep -c $disk) -eq 0 ]; then
+			echo $disk
+            break
+		fi
+	done
+}
+
+function get_AvailableDisks_aws() {
+	for disk in $(lsblk | grep "xvd[a-z].*disk" | cut -d ' ' -f1);
 	do
 		if [ $(df | grep -c $disk) -eq 0 ]; then
 			echo $disk
@@ -43,7 +53,10 @@ fi
 
 DISK="$1"
 if [[ $DISK =~ "azure" ]]; then
-    disk=$(get_AvailableDisks)
+    disk=$(get_AvailableDisks_azure)
+    DISK=/dev/$disk
+elif [[ $DISK =~ "aws" ]]; then
+    disk=$(get_AvailableDisks_aws)
     DISK=/dev/$disk
 fi
 

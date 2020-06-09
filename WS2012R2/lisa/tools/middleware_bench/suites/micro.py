@@ -63,16 +63,16 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     raid = 0
     if provider == constants.AWS:
         disk_size = 1024
-        device = constants.DEVICE_AWS.replace('sd', 'xvd')
+        device = "aws_device"
     elif provider == constants.AZURE:
         disk_size = 1024
-        device = 'azure_device'
+        device = "azure_device"
     elif provider == constants.GCE:
         disk_size = 167
+
     if raid:
         device = constants.RAID_DEV
-
-
+    
     test_env = SetupTestEnv(provider=provider, vm_count=1, test_type=constants.VM_DISK,
                             disk_size=disk_size, raid=raid, keyid=keyid, secret=secret,
                             token=token, subscriptionid=subscription, tenantid=tenant,
