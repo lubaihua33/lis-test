@@ -101,7 +101,7 @@ function run_storage ()
     iostat -x -d 1 900 2>&1 > /tmp/storage/${qdepth}.${io_mode}.iostat.netio.log &
     vmstat 1 900       2>&1 > /tmp/storage/${qdepth}.${io_mode}.vmstat.netio.log &
 
-    sudo fio --name=${io_mode} --bs=${io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=${file_size}G --direct=1 --runtime=60 --numjobs=${num_jobs} --rw=${io_mode} --group_reporting --directory ${MNT} > /tmp/storage/${io_size}K-${qdepth}-${io_mode}.fio.log
+    sudo fio --overwrite=1 --name=${io_mode} --bs=${io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=${file_size}G --direct=1 --runtime=60 --numjobs=${num_jobs} --rw=${io_mode} --group_reporting --filename=${DISK} > /tmp/storage/${io_size}K-${qdepth}-${io_mode}.fio.log
 
     sudo pkill -f iostat
     sudo pkill -f vmstat
