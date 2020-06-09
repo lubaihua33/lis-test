@@ -26,12 +26,26 @@ function LogMsg() {
     echo $(date "+%a %b %d %T %Y") : ${1} >> ${LOG_FILE}
 }
 
+function get_AvailableDisks() {
+	for disk in $(lsblk | grep "sd[a-z].*disk" | cut -d ' ' -f1);
+	do
+		if [ $(df | grep -c $disk) -eq 0 ]; then
+			echo $disk
+            break
+		fi
+	done
+}
+
 if [ $# -lt 1 ]; then
     echo -e "\nUsage:\n$0 disk"
     exit 1
 fi
 
 DISK="$1"
+if [[ $DISK =~ "azure" ]]; then
+    disk=$(get_AvailableDisks)
+    DISK=/dev/$disk
+fi
 
 QDEPTH=(1 2 4 8 16 32 64 128 256)
 IO_SIZE=(4 1024)

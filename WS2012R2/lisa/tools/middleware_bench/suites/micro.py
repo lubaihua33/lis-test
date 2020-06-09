@@ -66,7 +66,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
         device = constants.DEVICE_AWS.replace('sd', 'xvd')
     elif provider == constants.AZURE:
         disk_size = 1024
-        device = '/dev/sda'
+        device = 'azure_device'
     elif provider == constants.GCE:
         disk_size = 167
     if raid:
