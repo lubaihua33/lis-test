@@ -1401,15 +1401,42 @@ class StorageLogsReader(BaseLogsReader):
         log_dict['seq_read_lat_usec'] = 0
         log_dict['seq_read_iops_stdev'] = 0
         log_dict['seq_read_lat_usec_stdev'] = 0
+        log_dict['seq_read_clat_percentil_90'] = 0
+        log_dict['seq_read_clat_percentil_99'] = 0
         log_dict['seq_read_cpu_usr'] = 0
         log_dict['seq_read_cpu_sys'] = 0
         log_dict['seq_read_cpu_ctx'] = 0
+        log_dict['seq_read_free_mem'] = 0
         log_dict['rand_read_iops'] = 0
         log_dict['rand_read_lat_usec'] = 0
+        log_dict['rand_read_iops_stdev'] = 0
+        log_dict['rand_read_lat_usec_stdev'] = 0
+        log_dict['rand_read_clat_percentil_90'] = 0
+        log_dict['rand_read_clat_percentil_99'] = 0
+        log_dict['rand_read_cpu_usr'] = 0
+        log_dict['rand_read_cpu_sys'] = 0
+        log_dict['rand_read_cpu_ctx'] = 0
+        log_dict['rand_read_free_mem'] = 0
         log_dict['seq_write_iops'] = 0
         log_dict['seq_write_lat_usec'] = 0
+        log_dict['seq_write_iops_stdev'] = 0
+        log_dict['seq_write_lat_usec_stdev'] = 0
+        log_dict['seq_write_clat_percentil_90'] = 0
+        log_dict['seq_write_clat_percentil_99'] = 0
+        log_dict['seq_write_cpu_usr'] = 0
+        log_dict['seq_write_cpu_sys'] = 0
+        log_dict['seq_write_cpu_ctx'] = 0
+        log_dict['seq_write_free_mem'] = 0
         log_dict['rand_write_iops'] = 0
         log_dict['rand_write_lat_usec'] = 0
+        log_dict['rand_write_iops_stdev'] = 0
+        log_dict['rand_write_lat_usec_stdev'] = 0
+        log_dict['rand_write_clat_percentil_90'] = 0
+        log_dict['rand_write_clat_percentil_99'] = 0
+        log_dict['rand_write_cpu_usr'] = 0
+        log_dict['rand_write_cpu_sys'] = 0
+        log_dict['rand_write_cpu_ctx'] = 0
+        log_dict['rand_write_free_mem'] = 0
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1428,21 +1455,75 @@ class StorageLogsReader(BaseLogsReader):
                                                                 f_match.group(3), simple_mode))
             lat_key = '{}_lat_usec'.format(mode)
             iops_key = '{}_iops'.format(mode)
+            lat_stdev_key = '{}_lat_usec_stdev'.format(mode)
+            iops_stdev_key = '{}_iops_stdev'.format(mode)
+            clat_percentil_90 = '{}_clat_percentil_90'.format(mode)
+            clat_percentil_99 = '{}_clat_percentil_99'.format(mode)
+            cpu_usr = '{}_cpu_usr'.format(mode)
+            cpu_sys = '{}_cpu_sys'.format(mode)
+            cpu_ctx = '{}_cpu_ctx'.format(mode)
+            free_mem = '{}_free_mem'.format(mode)
+
             with open(mode_log, 'r') as fl:
-                for f_line in fl:
+                for x in fl:
                     if not log_dict.get(lat_key, None):
-                        lat = re.match('\s*lat\s*\(([a-z]+)\).+avg=\s*([0-9.]+)', f_line)
+                        lat = re.match('\s*lat\s*\(([a-z]+)\).+avg=\s*([0-9.]+)', x)
                         if lat:
                             unit = lat.group(1).strip()
                             log_dict[lat_key] = self._convert(float(lat.group(2).strip()),
                                                               self.UNIT[unit[:2]], self.UNIT['us'])
                     if not log_dict.get(iops_key, None):
-                        iops = re.match('.+IOPS=([0-9a-z. ]+),', f_line)
+                        iops = re.match('.+IOPS=([0-9a-z. ]+),', x)
                         if iops:
                             iops_digit = iops.group(1).strip()
                             if 'k' in iops_digit:
-                                iops_digit = int(float(iops_digit.split('k')[0]) * 1000)
+                                iops_digit = float(iops_digit.split('k')[0]) * 1000
                             log_dict[iops_key] = iops_digit
+
+                    if not log_dict.get(lat_stdev_key, None):
+                        lat_stdev = re.match('\s*lat\s*\(([a-z]+)\).+stdev=\s*([0-9.]+)', x)
+                        if lat_stdev:
+                            unit = lat.group(1).strip()
+                            log_dict[lat_stdev_key] = self._convert(float(lat_stdev.group(2).strip()),
+                                                    self.UNIT[unit[:2]], self.UNIT['us'])
+                    if not log_dict.get(iops_stdev_key, None):
+                        iops_stdev = re.match('\s*iops\s*:.+stdev=\s*([0-9.]+)', x)
+                        if iops_stdev:
+                            log_dict[iops_stdev_key]= iops_stdev.group(1).strip()
+                    if not log_dict.get(clat_percentil_90, None):
+                        percentil_90 = re.match('.+90.00th=\[\s*([0-9.]+)\]', x)
+                        if percentil_90:
+                            log_dict[clat_percentil_90] = percentil_90.group(1).strip()
+                    if not log_dict.get(clat_percentil_99, None):
+                        percentil_99 = re.match('.+99.00th=\[\s*([0-9.]+)\]', x)
+                        if percentil_99:
+                            log_dict[clat_percentil_99] = percentil_99.group(1).strip()
+                    if not log_dict.get(cpu_usr, None):
+                        usr = re.match('\s*cpu\s*:.+usr=\s*([0-9.]+)', x)
+                        if usr:
+                            log_dict[cpu_usr] = usr.group(1).strip()
+                    if not log_dict.get(cpu_sys, None):
+                        sys = re.match('\s*cpu\s*:.+sys=\s*([0-9.]+)', x)
+                        if sys:
+                            log_dict[cpu_sys] = sys.group(1).strip()
+                    if not log_dict.get(cpu_ctx, None):
+                        ctx = re.match('\s*cpu\s*:.+ctx=\s*([0-9.]+)', x)
+                        if ctx:
+                            log_dict[cpu_ctx] = ctx.group(1).strip()
+
+            vmstat_file = os.path.join(os.path.dirname(os.path.abspath(log_file)),
+                                    '{}.{}.vmstat.netio.log'.format(f_match.group(3), simple_mode))
+            count = 0
+            sum_mem = 0
+            if os.path.exists(vmstat_file):
+                with open(vmstat_file, 'r') as vmf:
+                    for x in vmf:
+                        if re.match('.+\d.+\d.+\d', x):
+                            freemem = int(list(filter(None, x.split(' ')))[3])
+                            sum_mem += freemem
+                            count += 1
+                    avg_mem = int(sum_mem/count)
+                    log_dict[free_mem] = avg_mem
 
         return log_dict
 

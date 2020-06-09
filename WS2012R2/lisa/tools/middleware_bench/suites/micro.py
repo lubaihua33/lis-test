@@ -74,7 +74,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
                             projectid=projectid, imageid=imageid, instancetype=instancetype,
                             user=user, localpath=localpath, region=region, zone=zone, sriov=sriov,
                             kernel=kernel)
-    test_cmd = '/tmp/run_storage.sh {}'.format(constants.DEVICE_AWS)
+    test_cmd = '/tmp/run_storage.sh {}'.format(constants.DEVICE_AWS.replace('sd', 'xvd'))
     results_path = os.path.join(localpath, 'storage{}_{}.zip'.format(str(time.time()),
                                                                      instancetype))
     test_env.run_test(testname='storage', test_cmd=test_cmd, raid=raid, results_path=results_path,
