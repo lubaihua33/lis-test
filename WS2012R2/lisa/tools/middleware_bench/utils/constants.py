@@ -79,7 +79,7 @@ NOT_GCE_TESTS = ['test_tensorflow_gpu']
 # GCE doesn't have quota for gpu
 
 DEVICE_AWS = '/dev/sdx'
-DEVICE_AZURE = '/dev/sda'
+DEVICE_AZURE = '/dev/sdc'
 DEVICE_GCE = '/dev/disk/by-id/google-'
 TEMP_DEVICE_GCE = '/dev/sdb'
 

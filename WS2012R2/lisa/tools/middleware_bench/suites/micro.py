@@ -63,10 +63,15 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     raid = 0
     if provider == constants.AWS:
         disk_size = 1024
+        device = constants.DEVICE_AWS.replace('sd', 'xvd')
     elif provider == constants.AZURE:
-        disk_size = 513
+        disk_size = 1024
+        device = '/dev/sda'
     elif provider == constants.GCE:
         disk_size = 167
+    if raid:
+        device = constants.RAID_DEV
+
 
     test_env = SetupTestEnv(provider=provider, vm_count=1, test_type=constants.VM_DISK,
                             disk_size=disk_size, raid=raid, keyid=keyid, secret=secret,
@@ -74,7 +79,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
                             projectid=projectid, imageid=imageid, instancetype=instancetype,
                             user=user, localpath=localpath, region=region, zone=zone, sriov=sriov,
                             kernel=kernel)
-    test_cmd = '/tmp/run_storage.sh {}'.format(constants.DEVICE_AWS.replace('sd', 'xvd'))
+    test_cmd = '/tmp/run_storage.sh {}'.format(device)
     results_path = os.path.join(localpath, 'storage{}_{}.zip'.format(str(time.time()),
                                                                      instancetype))
     test_env.run_test(testname='storage', test_cmd=test_cmd, raid=raid, results_path=results_path,
