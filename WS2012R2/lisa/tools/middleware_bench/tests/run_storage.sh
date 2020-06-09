@@ -59,22 +59,6 @@ else
     LogMsg "Unsupported distribution: ${distro}."
 fi
 
-if [[ ${DISK} == *"xvd"* || ${DISK} == *"sd"* ]]
-then
-    sudo mkfs.ext4 ${DISK}
-    sudo mkdir /stor
-    sudo mount ${DISK} /stor
-    sudo chmod 777 /stor
-    MNT="/stor"
-elif [[ ${DISK} == *"md"* ]]
-then
-    sudo chmod 777 /raid
-    MNT="/raid"
-else
-    LogMsg "Failed to identify disk type for ${DISK}."
-    exit 70
-fi
-
 cd /tmp
 mkdir -p /tmp/storage
 
