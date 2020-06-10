@@ -58,6 +58,8 @@ if [[ $DISK =~ "azure" ]]; then
 elif [[ $DISK =~ "aws" ]]; then
     disk=$(get_AvailableDisks_aws)
     DISK=/dev/$disk
+elif [[ $DISK =~ "md" ]]; then
+    umount $DISK
 fi
 
 QDEPTH=(1 2 4 8 16 32 64 128 256)
