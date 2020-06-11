@@ -304,7 +304,7 @@ class AzureConnector:
         disk_name = vm_instance.name + '_disk_' + str(time.time())
         disk_profile = {'name': disk_name,
                         'disk_size_gb': disk_size,
-                        'caching': 'ReadWrite',
+                        'caching': 'None',
                         'lun': device,
                         'vhd': {'uri': "http://{}.blob.core.windows.net/vhds/{}.vhd".format(
                                 self.storage_account, disk_name)},
