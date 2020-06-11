@@ -60,7 +60,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     :param kernel: custom kernel name provided in localpath
     """
     disk_size = 0
-    raid = 0
+    raid = 10
     if provider == constants.AWS:
         disk_size = 2048
         device = "aws_device"
@@ -73,7 +73,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     if raid:
         device = constants.RAID_DEV
     
-    device = "nvme"
+    '''device = "nvme"'''
     
     test_env = SetupTestEnv(provider=provider, vm_count=1, test_type=constants.VM_DISK,
                             disk_size=disk_size, raid=raid, keyid=keyid, secret=secret,
@@ -89,7 +89,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     upload_results(localpath=localpath, table_name='Perf_{}_Storage'.format(provider),
                    results_path=results_path, parser=StorageLogsReader,
                    other_table=('.deb' in kernel),
-                   test_case_name='{}_Storage_perf_tuned_hostcache_readonly'.format(provider),
+                   test_case_name='{}_Storage_perf_tuned_hostcache_readwrite'.format(provider),
                    provider=provider, region=region, data_path=shortcut.data_path(sriov),
                    host_type=shortcut.host_type(provider), instance_size=instancetype,
                    disk_setup='RAID0:{}x{}G'.format(raid, disk_size))
