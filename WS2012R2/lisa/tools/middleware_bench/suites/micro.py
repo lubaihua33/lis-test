@@ -87,7 +87,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     upload_results(localpath=localpath, table_name='Perf_{}_Storage'.format(provider),
                    results_path=results_path, parser=StorageLogsReader,
                    other_table=('.deb' in kernel),
-                   test_case_name='{}_Storage_perf_tuned_iops_32000'.format(provider),
+                   test_case_name='{}_Storage_perf_tuned_hostcache_readonly'.format(provider),
                    provider=provider, region=region, data_path=shortcut.data_path(sriov),
                    host_type=shortcut.host_type(provider), instance_size=instancetype,
                    disk_setup='RAID0:{}x{}G'.format(raid, disk_size))
