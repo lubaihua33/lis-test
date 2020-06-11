@@ -210,7 +210,7 @@ class SetupTestEnv:
         disk_args = {}
         if self.provider == constants.AWS:
             device = constants.DEVICE_AWS.replace('sd', 'xvd')
-            disk_args['iops'] = 7500
+            disk_args['iops'] = 32000
             disk_args['volume_type'] = self.connector.volume_type['ssd_io1']
             disk_args['device'] = constants.DEVICE_AWS
         elif self.provider == constants.AZURE:
