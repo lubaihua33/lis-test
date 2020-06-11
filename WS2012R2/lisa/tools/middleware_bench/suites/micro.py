@@ -60,7 +60,7 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
     :param kernel: custom kernel name provided in localpath
     """
     disk_size = 0
-    raid = 10
+    raid = 0
     if provider == constants.AWS:
         disk_size = 2048
         device = "aws_device"
@@ -72,6 +72,8 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
 
     if raid:
         device = constants.RAID_DEV
+    
+    device = "nvme"
     
     test_env = SetupTestEnv(provider=provider, vm_count=1, test_type=constants.VM_DISK,
                             disk_size=disk_size, raid=raid, keyid=keyid, secret=secret,
