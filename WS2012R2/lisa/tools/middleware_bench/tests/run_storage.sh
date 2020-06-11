@@ -46,12 +46,47 @@ function get_AvailableDisks_aws() {
 	done
 }
 
+function ConfigNVME()
+{
+	namespace_list=$(ls -l /dev | grep -w nvme[0-9]n[0-9]$ | awk '{print $10}')
+	nvme_namespaces=""
+	for namespace in ${namespace_list}; do
+		sudo nvme format /dev/${namespace}
+		sleep 1
+		(echo d; echo w) | sudo fdisk /dev/${namespace}
+		sleep 1
+		sudo bash -c "echo 0 > /sys/block/${namespace}/queue/rq_affinity"
+		sleep 1
+		nvme_namespaces="${nvme_namespaces}/dev/${namespace}:"
+		LogMsg "NMVe name space: $namespace"
+	done
+	# Deleting last char of string (:)
+	nvme_namespaces=${nvme_namespaces%?}
+
+	# Set the remaining variables
+	# NVMe perf tests will have a starting qdepth equal to vCPU number
+	startQDepth=$(nproc)
+	LogMsg "Setting qdepth in the setting: $startQDepth"
+	# NVMe perf tests will have a max qdepth equal to vCPU number x 256
+	maxQDepth=$(($(nproc) * 256))
+	LogMsg "Setting maxQDepth in the setting: $maxQDepth"
+}
+
 if [ $# -lt 1 ]; then
     echo -e "\nUsage:\n$0 disk"
     exit 1
 fi
+if [ -e /tmp/summary.log ]; then
+    sudo rm -rf /tmp/summary.log
+fi
 
 DISK="$1"
+startQDepth=1
+maxQDepth=256
+IO_SIZE=(4 1024)
+FILE_SIZE=(1000)
+IO_MODE=(read randread write randwrite)
+
 if [[ $DISK =~ "azure" ]]; then
     disk=$(get_AvailableDisks_azure)
     DISK=/dev/$disk
@@ -60,26 +95,19 @@ elif [[ $DISK =~ "aws" ]]; then
     DISK=/dev/$disk
 elif [[ $DISK =~ "md" ]]; then
     sudo umount $DISK
-fi
-
-QDEPTH=(1 2 4 8 16 32 64 128 256)
-IO_SIZE=(4 1024)
-FILE_SIZE=(1000)
-IO_MODE=(read randread write randwrite)
-
-if [ -e /tmp/summary.log ]; then
-    rm -rf /tmp/summary.log
+elif [[ $DISK =~ "nvme" ]]; then
+    ConfigNVME
 fi
 
 distro="$(head -1 /etc/issue)"
 if [[ ${distro} == *"Ubuntu"* ]]
 then
     sudo apt update
-    sudo apt -y install sysstat zip fio blktrace bc libaio1 >> ${LOG_FILE}
+    sudo apt -y install sysstat zip fio blktrace bc libaio1 nvme-cli >> ${LOG_FILE}
 elif [[ ${distro} == *"Amazon"* ]]
 then
     sudo yum clean dbcache>> ${LOG_FILE}
-    sudo yum -y install sysstat zip blktrace bc libaio* wget gcc automake autoconf >> ${LOG_FILE}
+    sudo yum -y install sysstat zip blktrace bc libaio* wget gcc automake autoconf nvme-cli>> ${LOG_FILE}
     cd /tmp; wget http://brick.kernel.dk/snaps/fio-2.21.tar.gz
     tar -xzf fio-2.21.tar.gz
     cd fio-2.21; ./configure; sudo make; sudo make install
@@ -107,6 +135,16 @@ function run_storage ()
         num_jobs=1
     fi
 
+    if [[ $DISK =~ "nvme" ]]; then
+        num_jobs=$(nproc)
+        actual_q_depth=$((qdepth/num_jobs))
+    fi
+
+    FILEIO="fio --size=${file_size}G --direct=1 --ioengine=libaio --filename=${DISK} --overwrite=1 "
+	if [[ $DISK =~ "nvme" ]]; then
+		FILEIO="fio --direct=1 --ioengine=libaio --filename=${nvme_namespaces} --gtod_reduce=1"
+	fi
+
     LogMsg "======================================"
     LogMsg "Running Test qdepth= ${qdepth} io_size=${io_size} io_mode=${io_mode} file_size=${file_size}"
     LogMsg "======================================"
@@ -114,7 +152,7 @@ function run_storage ()
     iostat -x -d 1 900 2>&1 > /tmp/storage/${qdepth}.${io_mode}.iostat.netio.log &
     vmstat 1 900       2>&1 > /tmp/storage/${qdepth}.${io_mode}.vmstat.netio.log &
 
-    sudo fio --overwrite=1 --name=${io_mode} --bs=${io_size}k --ioengine=libaio --iodepth=${actual_q_depth} --size=${file_size}G --direct=1 --runtime=60 --numjobs=${num_jobs} --rw=${io_mode} --group_reporting --filename=${DISK} > /tmp/storage/${io_size}K-${qdepth}-${io_mode}.fio.log
+    sudo $FILEIO --name=${io_mode} --bs=${io_size}k --iodepth=${actual_q_depth} --runtime=60 --numjobs=${num_jobs} --rw=${io_mode} --group_reporting > /tmp/storage/${io_size}K-${qdepth}-${io_mode}.fio.log
 
     sudo pkill -f iostat
     sudo pkill -f vmstat
@@ -123,7 +161,8 @@ function run_storage ()
     sleep 10
 }
 
-for qdepth in "${QDEPTH[@]}"
+qdepth=$startQDepth
+while [ $qdepth -le $maxQDepth ]
 do
     for io_size in "${IO_SIZE[@]}"
     do
@@ -135,6 +174,7 @@ do
             done
         done
     done
+    qdepth=$((qdepth*2))
 done
 
 LogMsg "Kernel Version : `uname -r`"

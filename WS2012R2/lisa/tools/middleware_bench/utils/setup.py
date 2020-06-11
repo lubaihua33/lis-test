@@ -232,7 +232,7 @@ class SetupTestEnv:
             vm_tag = 1
         elif self.test_type == constants.DB_DISK:
             vm_tag = 2
-        log.info('-----raid {}'.format(self.raid))
+
         if self.raid and type(self.raid) is int:
             return self.attach_raid_disks(vm_tag, disk_args)
         else:
