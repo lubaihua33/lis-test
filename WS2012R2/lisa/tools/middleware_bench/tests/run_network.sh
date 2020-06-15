@@ -67,7 +67,7 @@ mkdir -p /tmp/network${TEST_TYPE}
 cd /tmp
 if [[ ${TEST_TYPE} == "TCP" || ${TEST_TYPE} == "UDP2" ]]
 then
-    TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 6144 8192 10240)
+    TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 6144 8192 10240 20480 40960 50000 55000)
     cd /tmp; git clone https://github.com/Microsoft/ntttcp-for-linux
     cd /tmp/ntttcp-for-linux/src; sudo make && sudo make install
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/ntttcp-for-linux" >> ${LOG_FILE}
@@ -200,7 +200,7 @@ function run_ntttcp ()
     sleep 5
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
-    sudo lagscope -s${SERVER} -t60 > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
+    sudo lagscope -s${SERVER} -t60 -H -P -R/tmp/network${TEST_TYPE}/${current_test_threads}_latencies_log.csv > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
     if [[ ${current_test_type} == "tcp" ]]
     then
         sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"

@@ -990,6 +990,7 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['RetransFail'] = 0
         log_dict['SenderCpuBusyPercent'] = 0
         log_dict['ReceiverCpuBusyPercent'] = 0
+        log_dict['ConnectionsCreatedTime'] = 0
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1032,6 +1033,10 @@ class TCPLogsReader(BaseLogsReader):
                     cpu_busy = re.match('.+INFO:.+cpu busy \(all\).+:([0-9.]+)', x)
                     if cpu_busy:
                         log_dict['SenderCpuBusyPercent'] = cpu_busy.group(1).strip()
+                if not log_dict.get('ConnectionsCreatedTime', None):
+                    con_time = re.match('.+INFO:.+connections created in\s([0-9.]+)', x)
+                    if con_time:
+                        log_dict['ConnectionsCreatedTime'] = con_time.group(1).strip()
 
         receiver_file = os.path.join(os.path.dirname(os.path.abspath(log_file)),
                                      '{}_ntttcp-receiver.log'.format(log_dict['NumberOfConnections']))
