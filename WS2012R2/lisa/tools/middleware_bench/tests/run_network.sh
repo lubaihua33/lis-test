@@ -131,7 +131,7 @@ else
 fi
 
 function get_tx_bytes(){
-    local eth=`ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}'`
+    local eth=`ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}' | head -n 1`
     # RX bytes:66132495566 (66.1 GB)  TX bytes:3067606320236 (3.0 TB)
     local Tx_bytes=`ifconfig ${eth} | grep "TX bytes"   | awk -F':' '{print $3}' | awk -F' ' ' {print $1}'`
 
@@ -144,7 +144,7 @@ function get_tx_bytes(){
 }
 
 function get_tx_pkts(){
-    local eth=`ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}'`
+    local eth=`ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}' | head -n 1`
     # TX packets:543924452 errors:0 dropped:0 overruns:0 carrier:0
     local Tx_pkts=`ifconfig ${eth} | grep "TX packets" | awk -F':' '{print $2}' | awk -F' ' ' {print $1}'`
 
