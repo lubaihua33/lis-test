@@ -184,7 +184,7 @@ class SetupTestEnv:
                 ip = ssh_client[i].run(
                         'ifconfig eth0 | grep "inet" | cut -d: -f2 | awk -F " " \'{print $2}\' | head -n 1')
                 log.info('--vm ip {}'.format(ip))
-                vm_ips[i] = ip[0].strip()
+                vm_ips[i] = ip[1].strip()
                 log.info('--vm ips {}'.format(vm_ips[i]))
             elif self.provider == constants.GCE:
                 ssh_client[i] = self.connector.wait_for_ping(self.vms[i])
