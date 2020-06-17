@@ -203,7 +203,10 @@ function run_ntttcp ()
     sudo lagscope -s${SERVER} -t60 -H -P -R/tmp/network${TEST_TYPE}/${current_test_threads}_latencies_log.csv > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
     if [[ ${current_test_type} == "tcp" ]]
     then
-        sudo echo 122880 > /proc/sys/kernel/pid_max; sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
+        sudo echo 122880 > /proc/sys/kernel/pid_max; 
+        sudo echo 655300 > /proc/sys/vm/max_map_count; 
+        sudo echo 1024 65535 > /proc/sys/net/ipv4/ip_local_port_range; 
+        sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     else
         sudo ntttcp -s${SERVER} -u -b 1k -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     fi
