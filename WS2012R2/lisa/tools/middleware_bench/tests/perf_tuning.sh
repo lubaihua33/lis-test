@@ -91,7 +91,14 @@ function install_kernel {
     sudo update-grub
 }
 
+function setup_max_process{
+    if [[ ${distro} == *"Ubuntu"* ]]
+    then
+        sudo sed -i '$aUserTasksMax=122880' /etc/systemd/logind.conf
+    fi
+}
 setup_sysctl
+setup_max_process
 if [[ ${PROVIDER} == "azure" ]]; then
     setup_cpu_sched_domain
 fi
