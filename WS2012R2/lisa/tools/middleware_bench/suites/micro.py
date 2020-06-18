@@ -132,7 +132,7 @@ def test_network_tcp(provider, keyid, secret, token, imageid, subscription, tena
     upload_results(localpath=localpath, table_name='Perf_{}_Network_TCP'.format(provider),
                    results_path=results_path, parser=TCPLogsReader,
                    other_table=('.deb' in kernel),
-                   test_case_name='{}_Network_TCP_perf_tuned'.format(provider),
+                   test_case_name='{}_Network_TCP_perf_Comparison_With_AWS'.format(provider),
                    provider=provider, region=region, data_path=shortcut.data_path(sriov),
                    host_type=shortcut.host_type(provider), instance_size=instancetype)
 
