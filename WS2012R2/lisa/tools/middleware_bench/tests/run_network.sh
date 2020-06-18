@@ -47,11 +47,11 @@ then
     sudo apt install -y aptitude
     printf '.\n.\n.\n.\nY\nY\n' |sudo aptitude install build-essential >> ${LOG_FILE}
     sudo apt -y install build-essential >> ${LOG_FILE}
-    sudo apt -y install sysstat zip bc cmake>> ${LOG_FILE}
+    sudo apt -y install sysstat zip bc cmake dstat>> ${LOG_FILE}
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt update"
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt install -y aptitude"
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "printf '.\n.\n.\n.\nY\nY\n' |sudo aptitude install build-essential"
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt -y install sysstat zip bc build-essential cmake" >> ${LOG_FILE}
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt -y install sysstat zip bc build-essential cmake dstat" >> ${LOG_FILE}
 elif [[ ${distro} == *"Amazon"* ]]
 then
     sudo yum clean dbcache >> ${LOG_FILE}
@@ -187,7 +187,18 @@ function run_ntttcp ()
         num_threads_n=$(($current_test_threads / $num_threads_P))
     fi
     sudo pkill -f ntttcp
+    sudo pkill -f lagscope
+    sudo pkill -f sar
+    sudo pkill -f iostat
+    sudo pkill -f vmstat
+    sudo pkill -f dstat
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f ntttcp"
+    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f lagscope"
+    ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f sar"
+    ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f iostat"
+    ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f vmstat"
+    ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f dstat"
+
     local sender_eth=`ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}' | head -n 1`
     local receiver_eth=`ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ip link | grep -vE \"lo|vir|wl|^[^0-9]\" | head -n 1 | awk -F: '{print $ 2}'"`
     if [[ ${current_test_type} == "tcp" ]]
@@ -196,10 +207,21 @@ function run_ntttcp ()
     else
         ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -u -b 1k -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
     fi
-    sudo pkill -f lagscope
-    ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f lagscope"
+    
     ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo lagscope -r${SERVER}"
+    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sar -n DEV 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.sar.netio.receiver.log"
+    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "sar -P ALL 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.sar.cpu.receiver.log"
+    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "iostat -x -d 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.iostat.diskio.receiver.log"
+    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "vmstat 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.vmstat.memory.cpu.receiver.log"
+    ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "dstat -dam 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.dstat.receiver.log"
+    
     sleep 5
+    sar -n DEV 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.sar.netio.sender.log &
+    sar -P ALL 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.sar.cpu.sender.log &
+    iostat -x -d 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.iostat.netio.sender.log &
+    vmstat 1 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.vmstat.netio.sender.log &
+    dstat -dam 2>&1 > /tmp/network${TEST_TYPE}/${current_test_threads}.dstat.sender.log &   
+
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
     sudo lagscope -s${SERVER} -t60 -H -P -R/tmp/network${TEST_TYPE}/${current_test_threads}_latencies_log.csv > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
@@ -215,11 +237,7 @@ function run_ntttcp ()
     pkts_new=`(expr ${current_tx_pkts} - ${previous_tx_pkts})`
     avg_pkt_size=$(echo "scale=2;${bytes_new}/${pkts_new}/1024" | bc)
     echo "Average Package Size: ${avg_pkt_size}" >> /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log
-    sleep 10
-    sudo pkill -f ntttcp
-    sudo pkill -f lagscope
-    previous_tx_bytes=${current_tx_bytes}
-    previous_tx_pkts=${current_tx_pkts}
+    sleep 20
 }
 
 function run_iperf_parallel(){
