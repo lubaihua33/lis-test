@@ -188,9 +188,11 @@ function run_ntttcp ()
     fi
     sudo pkill -f ntttcp
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f ntttcp"
+    local sender_eth=`ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}' | head -n 1`
+    local receiver_eth=`ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ip link | grep -vE \"lo|vir|wl|^[^0-9]\" | head -n 1 | awk -F: '{print $ 2}'"`
     if [[ ${current_test_type} == "tcp" ]]
     then
-        ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
+        ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans --show-nic-packets ${receiver_eth} > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
     else
         ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800; sudo ntttcp -r${SERVER} -u -b 1k -P $num_threads_P -e -W 1 -C 1 -t 60 --show-tcp-retrans > /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-receiver.log"
     fi
@@ -203,10 +205,7 @@ function run_ntttcp ()
     sudo lagscope -s${SERVER} -t60 -H -P -R/tmp/network${TEST_TYPE}/${current_test_threads}_latencies_log.csv > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
     if [[ ${current_test_type} == "tcp" ]]
     then
-        sudo bash -c "echo 122880 > /proc/sys/kernel/pid_max"; 
-        sudo bash -c "echo 655300 > /proc/sys/vm/max_map_count"; 
-        sudo bash -c "echo 1024 65535 > /proc/sys/net/ipv4/ip_local_port_range"; 
-        sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans  > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
+        sudo ntttcp -s${SERVER} -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans --show-nic-packets ${sender_eth} > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     else
         sudo ntttcp -s${SERVER} -u -b 1k -P ${num_threads_P} -n ${num_threads_n} -t 60 -W 1 -C 1 --show-tcp-retrans > "/tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log"
     fi
@@ -318,6 +317,9 @@ function run_custom()
 if [[ ${TEST_TYPE} == "TCP" ]]
 then
     ulimit -n 204800
+    sudo bash -c "echo 122880 > /proc/sys/kernel/pid_max"; 
+    sudo bash -c "echo 655300 > /proc/sys/vm/max_map_count"; 
+    sudo bash -c "echo 1024 65535 > /proc/sys/net/ipv4/ip_local_port_range";
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ulimit -n 204800"
     for thread in "${TEST_THREADS[@]}"
     do
