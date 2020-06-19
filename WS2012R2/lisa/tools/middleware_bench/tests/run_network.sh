@@ -395,6 +395,9 @@ fi
 LogMsg "Kernel Version : `uname -r`"
 LogMsg "Guest OS : ${distro}"
 
+lspci >> ${LOG_FILE}
+lscpu >> ${LOG_FILE}
+
 scp -o StrictHostKeyChecking=no ${USER}@${SERVER}:/tmp/network${TEST_TYPE}/* /tmp/network${TEST_TYPE}/ >> ${LOG_FILE}
 cd /tmp
 zip -r network.zip . -i network${TEST_TYPE}/* >> ${LOG_FILE}
