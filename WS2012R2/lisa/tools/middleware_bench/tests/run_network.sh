@@ -237,7 +237,7 @@ function run_ntttcp ()
     pkts_new=`(expr ${current_tx_pkts} - ${previous_tx_pkts})`
     avg_pkt_size=$(echo "scale=2;${bytes_new}/${pkts_new}/1024" | bc)
     echo "Average Package Size: ${avg_pkt_size}" >> /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log
-    sleep 30
+    sleep 10
 }
 
 function run_iperf_parallel(){
