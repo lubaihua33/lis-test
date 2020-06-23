@@ -183,7 +183,7 @@ class SetupTestEnv:
                                                   self.connector.key_name + '.pem'))
                 ip = ssh_client[i].run(
                         'ifconfig eth0 | grep "inet" | cut -d: -f2 | awk -F " " \'{print $2}\' | head -n 1')
-                log.info('--vm ip {}'.format(ip))
+                log.info('vm ip {}'.format(ip))
                 vm_ips[i] = ip[1].strip()
                 log.info('--vm ips i {} {}'.format(i, vm_ips[i]))
             elif self.provider == constants.GCE:
@@ -212,7 +212,7 @@ class SetupTestEnv:
         disk_args = {}
         if self.provider == constants.AWS:
             device = constants.DEVICE_AWS.replace('sd', 'xvd')
-            disk_args['iops'] = 32000
+            disk_args['iops'] = 5000
             disk_args['volume_type'] = self.connector.volume_type['ssd_io1']
             disk_args['device'] = constants.DEVICE_AWS
         elif self.provider == constants.AZURE:
