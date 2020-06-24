@@ -83,7 +83,7 @@ def test_orion(provider, keyid, secret, token, imageid, subscription, tenant, pr
     upload_results(localpath=localpath, table_name='Perf_{}_Orion'.format(provider),
                    results_path=results_path, parser=OrionLogsReader,
                    other_table=('.deb' in kernel),
-                   test_case_name='{}_Orion_perf_tuned_aws_iops_3500'.format(provider),
+                   test_case_name='{}_Orion_perf_tuned'.format(provider),
                    host_type=shortcut.host_type(provider), instance_size=instancetype,
                    disk_setup='1 x SSD {}GB'.format(disk_size))
 
@@ -545,6 +545,7 @@ def test_mongodb(provider, keyid, secret, token, imageid, subscription, tenant, 
                             projectid=projectid, imageid=imageid, instancetype=instancetype,
                             user=user, localpath=localpath, region=region, zone=zone, sriov=sriov,
                             kernel=kernel)
+    test_env.device = "/dev/nvme0n1"
     test_cmd = '/tmp/run_mongodb.sh {} {} {}'.format(test_env.vm_ips[2], user, test_env.device)
     results_path = os.path.join(localpath, 'mongodb{}_{}_{}.zip'.format(
             str(time.time()), instancetype, sriov))
