@@ -35,6 +35,7 @@ SERVER="$1"
 USER="$2"
 DISK="$3"
 TEST_THREADS=(1 2 4 8 16 32 64 128 256)
+oltp_path="/tmp/sysbench/sysbench/tests/db/oltp.lua"
 client_ip=`ip route get ${SERVER} | awk '{print $NF; exit}'`
 
 if [ -e /tmp/summary.log ]; then
@@ -61,7 +62,8 @@ distro="$(head -1 /etc/issue)"
 if [[ ${distro} == *"Ubuntu"* ]]
 then
     sudo apt update
-    sudo apt -y install libaio1 sysstat zip sysbench mysql-client* >> ${LOG_FILE}
+    sudo apt -y install libaio1 make sysstat zip mysql-client* >> ${LOG_FILE}
+    sudo apt -y install git automake libtool libmysqlclient-dev -o Acquire::ForceIPv4=true >> ${LOG_FILE}
 
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt update"
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo apt -y install libaio1 sysstat zip mariadb-server" >> ${LOG_FILE}
@@ -69,10 +71,15 @@ then
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sed -i '/datadir/c\datadir = ${escaped_path}' /etc/mysql/mariadb.conf.d/50-server.cnf" >> ${LOG_FILE}
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sed -i '/bind-address/c\bind-address = 0\.0\.0\.0' /etc/mysql/mariadb.conf.d/50-server.cnf" >> ${LOG_FILE}
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo sed -i '/max_connections/c\max_connections = 1024' /etc/mysql/mariadb.conf.d/50-server.cnf" >> ${LOG_FILE}
+    cd /tmp
+    rm -rf sysbench
+    git clone https://github.com/simonxiaoss/sysbench
+    cd /tmp/sysbench; ./autogen.sh; ./configure; make; sudo make install >> ${LOG_FILE}
+    sudo cp /usr/local/bin/sysbench /usr/bin/sysbench
 elif [[ ${distro} == *"Amazon"* ]]
 then
     sudo yum clean dbcache >> ${LOG_FILE}
-    sudo yum -y install sysstat zip sysstat zip gcc automake openssl-devel libtool wget >> ${LOG_FILE}
+    sudo yum -y install make git sysstat zip sysstat zip gcc automake openssl-devel libtool wget >> ${LOG_FILE}
     maria_repo_server="[mariadb-main]\
                   \nname = MariaDB Server\
                   \nbaseurl = https://downloads.mariadb.com/MariaDB/mariadb-10.0/yum/centos/6/x86_64\
@@ -81,9 +88,9 @@ then
     echo -e ${maria_repo_server} | sudo tee /etc/yum.repos.d/mariadb.repo >> ${LOG_FILE}
     sudo yum -y install MariaDB-client MariaDB-devel >> ${LOG_FILE}
     cd /tmp
-    wget http://downloads.mysql.com/source/sysbench-0.4.12.5.tar.gz
-    gunzip -c sysbench-0.4.12.5.tar.gz |tar zx
-    cd /tmp/sysbench-0.4.12.5; ./configure; make; sudo make install >> ${LOG_FILE}
+    rm -rf sysbench
+    git clone https://github.com/simonxiaoss/sysbench
+    cd /tmp/sysbench; ./autogen.sh; ./configure; make; sudo make install >> ${LOG_FILE}
     sudo cp /usr/local/bin/sysbench /usr/bin/sysbench
 
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "echo -e '${maria_repo_server}' | sudo tee /etc/yum.repos.d/mariadb.repo" >> ${LOG_FILE}
@@ -112,7 +119,7 @@ ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo mysql -e \"CREATE DAT
 ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo mysql -e \"SET GLOBAL max_connections = 5000;\"" >> ${LOG_FILE}
 ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo mysql -e \"FLUSH PRIVILEGES;\"" >> ${LOG_FILE}
 
-sudo sysbench --test=oltp --mysql-host=${SERVER} --mysql-user=${USER} --mysql-password=lisapassword --mysql-db=sbtest --oltp-table-size=100000000 prepare >> ${LOG_FILE}
+sudo sysbench --test=oltp_path --mysql-host=${SERVER} --mysql-user=${USER} --mysql-password=lisapassword --mysql-db=sbtest --oltp-table-size=100000000 prepare >> ${LOG_FILE}
 
 function run_mariadb ()
 {
@@ -131,7 +138,7 @@ function run_mariadb ()
     vmstat 1 2>&1 > /tmp/mariadb/${threads}.vmstat.netio.log &
     mpstat -P ALL 1 2>&1 > /tmp/mariadb/${threads}.mpstat.cpu.log &
 
-    sudo sysbench --test=oltp --mysql-host=${SERVER} --mysql-user=${USER} --mysql-password=lisapassword --mysql-db=sbtest --max-time=300 --oltp-test-mode=complex --mysql-table-engine=innodb --oltp-read-only=off --max-requests=100000000 --num-threads=${threads} run > /tmp/mariadb/${threads}.sysbench.mariadb.run.log
+    sudo sysbench --test=oltp_path --mysql-host=${SERVER} --mysql-user=${USER} --mysql-password=lisapassword --mysql-db=sbtest --max-time=300 --oltp-test-mode=complex --mysql-table-engine=innodb --oltp-read-only=off --max-requests=100000000 --num-threads=${threads} run > /tmp/mariadb/${threads}.sysbench.mariadb.run.log
 
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f sar"
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f iostat"
@@ -151,7 +158,7 @@ do
     run_mariadb ${threads}
 done
 
-sudo sysbench --test=oltp --mysql-host=${SERVER} --mysql-user=${USER} --mysql-password=lisapassword --mysql-db=sbtest cleanup >> ${LOG_FILE}
+sudo sysbench --test=oltp_path --mysql-host=${SERVER} --mysql-user=${USER} --mysql-password=lisapassword --mysql-db=sbtest cleanup >> ${LOG_FILE}
 
 LogMsg "Kernel Version : `uname -r`"
 LogMsg "Guest OS : ${distro}"
