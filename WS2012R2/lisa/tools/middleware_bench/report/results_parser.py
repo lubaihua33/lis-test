@@ -473,7 +473,7 @@ class MemcachedLogsReader(BaseLogsReader):
                                                    f_lines[x])
                         if conn_per_thread:
                             log_dict['ConnectionsPerThread'] = conn_per_thread.group(1)
-                        req_per_thread = re.match('\s*([0-9]+)\s*Requests\s*per\s*thread',
+                        req_per_thread = re.match('\s*([0-9]+)\s*Requests\s*per\s*client',
                                                   f_lines[x])
                         if req_per_thread:
                             log_dict['RequestsPerThread'] = req_per_thread.group(1)
