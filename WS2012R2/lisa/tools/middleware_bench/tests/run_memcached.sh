@@ -33,6 +33,7 @@ fi
 
 SERVER="$1"
 USER="$2"
+PORT="11200"
 THREADS=(1 2 4 8 16 32 64 128 256 512)
 max_threads=16
 
@@ -69,7 +70,7 @@ mkdir -p /tmp/memcached
 ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "mkdir -p /tmp/memcached"
 ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f memcached" >> ${LOG_FILE}
 LogMsg "Starting memcached server on ${SERVER}"
-ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "memcached -u ${USER}" >> ${LOG_FILE}
+ssh -f -o StrictHostKeyChecking=no ${USER}@${SERVER} "memcached -u ${USER} -p ${PORT}" >> ${LOG_FILE}
 
 function run_memcached ()
 {
@@ -89,7 +90,7 @@ function run_memcached ()
     iostat -x -d 1 2>&1 > /tmp/memcached/${thread}.iostat.netio.log &
     vmstat 1 2>&1 > /tmp/memcached/${thread}.vmstat.netio.log &
 
-    memtier_benchmark -s ${SERVER} -p 11211 -P memcache_text -x 3 -n ${total_request} -t ${num_threads} -c ${num_client_per_thread} -d 4000 --ratio 1:1 --key-pattern S:S > /tmp/memcached/${thread}.memtier_benchmark.run.log
+    memtier_benchmark -s ${SERVER} -p ${PORT} -P memcache_text -x 3 -n ${total_request} -t ${num_threads} -c ${num_client_per_thread} -d 4000 --ratio 1:1 --key-pattern S:S > /tmp/memcached/${thread}.memtier_benchmark.run.log
 
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f sar"
     ssh -T -o StrictHostKeyChecking=no ${USER}@${SERVER} "sudo pkill -f iostat"
