@@ -37,7 +37,7 @@ client_threads_collection=(1 2 4 8 12 16 20)
 watch_multiple=5
 znode_size=100
 znode_count=10000
-zk_version="zookeeper-3.4.10"
+zk_version="zookeeper-3.4.14"
 zk_data="/zk/data"
 
 if [ -e /tmp/summary.log ]; then
