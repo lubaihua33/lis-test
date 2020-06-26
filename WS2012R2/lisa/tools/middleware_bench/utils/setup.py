@@ -196,8 +196,8 @@ class SetupTestEnv:
         for i in xrange(self.raid):
             if self.provider == constants.AWS:
                 disk_args['device'] = '/dev/sd{}'.format(chr(120 - i))
-                '''device.append(disk_args['device'].replace('sd', 'xvd'))'''
-                device.append('/dev/nvme{}n1'.format(i))
+                device.append(disk_args['device'].replace('sd', 'xvd'))
+                '''device.append('/dev/nvme{}n1'.format(i))'''
             elif self.provider == constants.AZURE:
                 disk_args['device'] = i
                 device.append('/dev/sd{}'.format(chr(99 + i)))
@@ -213,7 +213,7 @@ class SetupTestEnv:
         disk_args = {}
         if self.provider == constants.AWS:
             device = constants.DEVICE_AWS.replace('sd', 'xvd')
-            disk_args['iops'] = 3500
+            disk_args['iops'] = 5000
             disk_args['volume_type'] = self.connector.volume_type['ssd_io1']
             disk_args['device'] = constants.DEVICE_AWS
         elif self.provider == constants.AZURE:
