@@ -76,6 +76,7 @@ def test_orion(provider, keyid, secret, token, imageid, subscription, tenant, pr
                             kernel=kernel)
     test_env.ssh_client[1].put_file(os.path.join(localpath, 'orion_linux_x86-64.gz'),
                                     '/tmp/orion_linux_x86-64.gz')
+    test_env.device="nvme0n1"
     test_cmd = '/tmp/run_orion.sh {}'.format(test_env.device)
     results_path = os.path.join(localpath, 'orion{}_{}.zip'.format(str(time.time()), instancetype))
     test_env.run_test(testname='orion', test_cmd=test_cmd, results_path=results_path,
