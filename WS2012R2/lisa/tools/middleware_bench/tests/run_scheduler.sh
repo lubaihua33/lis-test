@@ -59,7 +59,7 @@ distro="$(head -1 /etc/issue)"
 if [[ ${distro} == *"Ubuntu"* ]]
 then
     sudo apt update
-    sudo apt -y install rt-tests sysstat zip >> ${LOG_FILE}
+    sudo apt -y install rt-tests sysstat zip make gcc >> ${LOG_FILE}
     cd /tmp
     git clone https://git.kernel.org/pub/scm/linux/kernel/git/mason/schbench.git
     cd /tmp/schbench; make; cd /tmp
