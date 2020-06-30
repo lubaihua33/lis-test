@@ -94,6 +94,49 @@ def test_storage(provider, keyid, secret, token, imageid, subscription, tenant, 
                    host_type=shortcut.host_type(provider), instance_size=instancetype,
                    disk_setup='RAID0:{}x{}G'.format(raid, disk_size))
 
+def test_storage_nvme(provider, keyid, secret, token, imageid, subscription, tenant, projectid,
+                 instancetype, user, localpath, region, zone, sriov, kernel):
+    """
+    Run FIO storage profile.
+    :param provider Service provider to be used e.g. azure, aws, gce.
+    :param keyid: user key for executing remote connection
+    :param secret: user secret for executing remote connection
+    :param token: GCE refresh token obtained with gcloud sdk
+    :param subscription: Azure specific subscription id
+    :param tenant: Azure specific tenant id
+    :param projectid: GCE specific project id
+    :param imageid: AWS OS AMI image id or
+                    Azure image references offer and sku: e.g. 'UbuntuServer#16.04.0-LTS'.
+    :param instancetype: AWS instance resource type e.g 'd2.4xlarge' or
+                        Azure hardware profile vm size e.g. 'Standard_DS14_v2'.
+    :param user: remote ssh user for the instance
+    :param localpath: localpath where the logs should be downloaded, and the
+                        default path for other necessary tools
+    :param region: EC2 region to connect to
+    :param zone: EC2 zone where other resources should be available
+    :param sriov: Enable or disable SR-IOV
+    :param kernel: custom kernel name provided in localpath
+    """
+   
+    test_env = SetupTestEnv(provider=provider, vm_count=1, test_type=None,
+                            disk_size=None, raid=False, keyid=keyid, secret=secret,
+                            token=token, subscriptionid=subscription, tenantid=tenant,
+                            projectid=projectid, imageid=imageid, instancetype=instancetype,
+                            user=user, localpath=localpath, region=region, zone=zone, sriov=sriov,
+                            kernel=kernel)
+    test_cmd = '/tmp/run_storage.sh nvme'
+    results_path = os.path.join(localpath, 'storage{}_{}.zip'.format(str(time.time()),
+                                                                     instancetype))
+    test_env.run_test(testname='storage', test_cmd=test_cmd, raid=False, results_path=results_path,
+                      timeout=constants.TIMEOUT * 2)
+    upload_results(localpath=localpath, table_name='Perf_{}_Storage'.format(provider),
+                   results_path=results_path, parser=StorageLogsReader,
+                   other_table=('.deb' in kernel),
+                   test_case_name='{}_Storage_perf_tuned_NVME'.format(provider),
+                   provider=provider, region=region, data_path=shortcut.data_path(sriov),
+                   host_type=shortcut.host_type(provider), instance_size=instancetype,
+                   disk_setup='NVMe')
+
 
 def test_network_tcp(provider, keyid, secret, token, imageid, subscription, tenant, projectid,
                      instancetype, user, localpath, region, zone, sriov, kernel):

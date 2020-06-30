@@ -51,14 +51,16 @@ function ConfigNVME()
 	namespace_list=$(ls -l /dev | grep -w nvme[0-9]n[0-9]$ | awk '{print $10}')
 	nvme_namespaces=""
 	for namespace in ${namespace_list}; do
-		sudo nvme format /dev/${namespace}
-		sleep 1
-		(echo d; echo w) | sudo fdisk /dev/${namespace}
-		sleep 1
-		sudo bash -c "echo 0 > /sys/block/${namespace}/queue/rq_affinity"
-		sleep 1
-		nvme_namespaces="${nvme_namespaces}/dev/${namespace}:"
-		LogMsg "NMVe name space: $namespace"
+        if [ $(df | grep -c $namespace) -eq 0 ]; then
+            sudo nvme format /dev/${namespace}
+            sleep 1
+            (echo d; echo w) | sudo fdisk /dev/${namespace}
+            sleep 1
+            sudo bash -c "echo 0 > /sys/block/${namespace}/queue/rq_affinity"
+            sleep 1
+            nvme_namespaces="${nvme_namespaces}/dev/${namespace}:"
+            LogMsg "NMVe name space: $namespace"
+        fi
 	done
 	# Deleting last char of string (:)
 	nvme_namespaces=${nvme_namespaces%?}
