@@ -67,8 +67,8 @@ mkdir -p /tmp/network${TEST_TYPE}
 cd /tmp
 if [[ ${TEST_TYPE} == "TCP" || ${TEST_TYPE} == "UDP2" ]]
 then
-    #TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 6144 8192 10240 20480 40960 50000 55000)
-    TEST_THREADS=(1 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36)
+    TEST_THREADS=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 6144 8192 10240 20480 40960 50000 55000)
+    #TEST_THREADS=(1 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36)
     cd /tmp; git clone https://github.com/Microsoft/ntttcp-for-linux
     cd /tmp/ntttcp-for-linux/src; sudo make && sudo make install
     ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "cd /tmp; git clone https://github.com/Microsoft/ntttcp-for-linux" >> ${LOG_FILE}
