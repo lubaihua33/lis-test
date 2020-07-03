@@ -60,6 +60,7 @@ function ConfigNVME()
             sleep 1
             nvme_namespaces="${nvme_namespaces}/dev/${namespace}:"
             LogMsg "NMVe name space: $namespace"
+            break
         fi
 	done
 	# Deleting last char of string (:)
