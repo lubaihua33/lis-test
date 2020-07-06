@@ -160,8 +160,8 @@ function run_storage ()
     sudo pkill -f iostat
     sudo pkill -f vmstat
 
-    LogMsg "sleep 10 seconds"
-    sleep 10
+    LogMsg "sleep 20 seconds"
+    sleep 20
 }
 
 qdepth=$startQDepth
