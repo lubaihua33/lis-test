@@ -161,7 +161,7 @@ function run_storage ()
     sudo pkill -f vmstat
 
     LogMsg "sleep 20 seconds"
-    sleep 20
+    sleep 30
 }
 
 qdepth=$startQDepth
