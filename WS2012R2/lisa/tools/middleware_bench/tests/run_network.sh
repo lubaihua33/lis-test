@@ -401,6 +401,6 @@ lscpu >> ${LOG_FILE}
 
 scp -o StrictHostKeyChecking=no ${USER}@${SERVER}:/tmp/network${TEST_TYPE}/* /tmp/network${TEST_TYPE}/ >> ${LOG_FILE}
 cd /tmp
+mv network/* network${TEST_TYPE}/
 zip -r network.zip . -i network${TEST_TYPE}/* >> ${LOG_FILE}
 zip -r network.zip . -i summary.log >> ${LOG_FILE}
-zip -r network.zip . -i network/* >> ${LOG_FILE}
