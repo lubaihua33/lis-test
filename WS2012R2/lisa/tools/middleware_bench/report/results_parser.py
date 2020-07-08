@@ -101,6 +101,31 @@ class BaseLogsReader(object):
         else:
             return log_path
 
+    def get_system_info(self, log_path, log_dict):
+        system_info_file = os.path.join(os.path.dirname(log_path), 'system_info.log')
+        if os.path.exists(system_info_file):
+            with open(system_info_file, 'r') as f:
+                for line in f:
+                    if not log_dict.get('CpuNumber', None):
+                        cpu_number = re.match('CPU\(s\):\s*([0-9.]+)', line)
+                        if cpu_number:
+                            log_dict['CpuNumber'] = cpu_number.group(1).strip()
+
+                    if not log_dict.get('MemorySize_G', None):
+                        memory_size = re.match('Mem:\s*([0-9.]+)', line)
+                        if memory_size:
+                            log_dict['MemorySize_G'] = memory_size.group(1).strip()
+
+                    if not log_dict.get('CpuSpeed_MHZ:', None):
+                        cpu_speed = re.match('CPU MHz:\s*([0-9.]+)', line)
+                        if cpu_speed:
+                            log_dict['CpuSpeed_MHZ'] = cpu_speed.group(1).strip()
+                    
+                    if not log_dict.get('HypervisorVendor:', None):
+                        hypervisor = re.match('Hypervisor vendor:\s*([a-zA-Z]+)', line)
+                        if hypervisor:
+                            log_dict['HypervisorVendor'] = hypervisor.group(1).strip()
+            
     def get_summary_log(self):
         summary_log = [log_file for log_file in os.listdir(os.path.dirname(self.log_base_path))
                        if 'summary.log' in log_file][0]
@@ -240,7 +265,7 @@ class BaseLogsReader(object):
             elif type(collected_data) is list:
                 list_log_dict += collected_data
             else:
-                list_log_dict.append(collected_data)
+                list_log_dict.append(collected_data)        
 
         self.teardown()
         if self.sorter:
@@ -997,6 +1022,8 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['GuestDistro'] = summary['guest_os']
         log_dict['GuestOSType'] = 'Linux'
 
+        self.get_system_info(os.path.abspath(log_file), log_dict)
+
         with open(log_file, 'r') as fl:
             for x in fl:
                 if not log_dict.get('Throughput_Gbps', None):
@@ -1124,6 +1151,8 @@ class LatencyLogsReader(BaseLogsReader):
         log_dict['TestDate'] = summary['date']
         log_dict['GuestDistro'] = summary['guest_os']
         log_dict['GuestOSType'] = 'Linux'
+
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         with open(log_file, 'r') as fl:
             for x in fl:
@@ -1494,12 +1523,10 @@ class StorageLogsReader(BaseLogsReader):
                         percentil_90 = re.match('.+90.00th=\[\s*([0-9.]+)\]', x)
                         if percentil_90:
                             log_dict[clat_percentil_90] = percentil_90.group(1).strip()
-                            log.info('clat_percentil_90 {}'.format(log_dict[clat_percentil_90]))
                     if not log_dict.get(clat_percentil_99, None):
                         percentil_99 = re.match('.+99.00th=\[\s*([0-9.]+)\]', x)
                         if percentil_99:
                             log_dict[clat_percentil_99] = percentil_99.group(1).strip()
-                            log.info('clat_percentil_99 {}'.format(log_dict[clat_percentil_99]))
                         
                     if not log_dict.get(cpu_usr, None):
                         usr = re.match('\s*cpu\s*:.+usr=\s*([0-9.]+)', x)

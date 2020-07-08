@@ -293,7 +293,14 @@ class SetupTestEnv:
                     self.ssh_client[ssh_raid].run("sed -i 's/\r//' /tmp/raid.sh")
                     self.ssh_client[ssh_raid].run('/tmp/raid.sh 0 {} {}'.format(raid, ' '.join(
                             self.device)))
-                    print(self.device)
+
+                # Collect information of cpu memory and pci
+                self.ssh_client[1].put_file(os.path.join(current_path, 'tests', 'collect_system_info.sh'), '/tmp/collect_system_info.sh')
+                self.ssh_client[1].run('chmod +x /tmp/collect_system_info.sh')
+                self.ssh_client[1].run("sed -i 's/\r//' /tmp/collect_system_info.sh")
+                self.ssh_client[1].run('/tmp/collect_system_info.sh {}'.format(testname))
+
+                # Run test
                 bash_testname = 'run_{}.sh'.format(testname)
                 self.ssh_client[1].put_file(os.path.join(current_path, 'tests', bash_testname),
                                             '/tmp/{}'.format(bash_testname))

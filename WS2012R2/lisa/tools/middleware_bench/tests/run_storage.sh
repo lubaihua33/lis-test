@@ -85,7 +85,7 @@ fi
 
 DISK="$1"
 startQDepth=1
-maxQDepth=8
+maxQDepth=256
 IO_SIZE=(4 1024)
 FILE_SIZE=(1000)
 IO_MODE=(read randread write randwrite)
