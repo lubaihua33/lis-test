@@ -952,7 +952,7 @@ class TCPLogsReader(BaseLogsReader):
         self.headers = ['NumberOfConnections', 'Throughput_Gbps', 'Latency_ms',
                         'PacketSize_KBytes', 'SenderCyclesPerByte', 'ReceiverCyclesPerByte',
                         'SenderCpuUsePercent', 'ReceiverCpuUsePercent',
-                        'RetransSegments', 'LostRetrans', 'RetransFail', 'SenderCpuBusyPercent', 'ReceiverCpuBusyPercent',
+                        'RetransSegments', 'LostRetrans', 'SenderCpuBusyPercent', 'ReceiverCpuBusyPercent',
                         'IPVersion', 'ProtocolType']
         self.sorter = ['NumberOfConnections']
         self.test_case_name = test_case_name
@@ -987,7 +987,6 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['ReceiverCpuUsePercent'] = 0
         log_dict['RetransSegments'] = 0
         log_dict['LostRetrans'] = 0
-        log_dict['RetransFail'] = 0
         log_dict['SenderCpuBusyPercent'] = 0
         log_dict['ReceiverCpuBusyPercent'] = 0
         log_dict['ConnectionsCreatedTime'] = 0
@@ -1025,10 +1024,6 @@ class TCPLogsReader(BaseLogsReader):
                     lost_retrans = re.match('.+INFO:.+lost_retrans/sec.+:([0-9.]+)', x)
                     if lost_retrans:
                         log_dict['LostRetrans'] = lost_retrans.group(1).strip()
-                if not log_dict.get('RetransFail', None):
-                    retrans_fail = re.match('.+INFO:.+retrans_fail/sec.+:([0-9.]+)', x)
-                    if retrans_fail:
-                        log_dict['RetransFail'] = retrans_fail.group(1).strip()
                 if not log_dict.get('SenderCpuBusyPercent', None):
                     cpu_busy = re.match('.+INFO:.+cpu busy \(all\).+:([0-9.]+)', x)
                     if cpu_busy:
@@ -1499,10 +1494,13 @@ class StorageLogsReader(BaseLogsReader):
                         percentil_90 = re.match('.+90.00th=\[\s*([0-9.]+)\]', x)
                         if percentil_90:
                             log_dict[clat_percentil_90] = percentil_90.group(1).strip()
+                            log.info('clat_percentil_90 {}'.format(log_dict[clat_percentil_90]))
                     if not log_dict.get(clat_percentil_99, None):
                         percentil_99 = re.match('.+99.00th=\[\s*([0-9.]+)\]', x)
                         if percentil_99:
                             log_dict[clat_percentil_99] = percentil_99.group(1).strip()
+                            log.info('clat_percentil_99 {}'.format(log_dict[clat_percentil_99]))
+                        
                     if not log_dict.get(cpu_usr, None):
                         usr = re.match('\s*cpu\s*:.+usr=\s*([0-9.]+)', x)
                         if usr:
