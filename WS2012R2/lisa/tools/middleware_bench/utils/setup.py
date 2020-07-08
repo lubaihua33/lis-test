@@ -299,6 +299,7 @@ class SetupTestEnv:
                 self.ssh_client[1].run('chmod +x /tmp/collect_system_info.sh')
                 self.ssh_client[1].run("sed -i 's/\r//' /tmp/collect_system_info.sh")
                 self.ssh_client[1].run('/tmp/collect_system_info.sh {}'.format(testname))
+                log.info('Starting collect system info')
 
                 # Run test
                 bash_testname = 'run_{}.sh'.format(testname)
