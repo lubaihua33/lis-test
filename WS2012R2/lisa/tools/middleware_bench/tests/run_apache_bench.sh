@@ -135,6 +135,7 @@ function run_apache_bench ()
     sar -n DEV 1 2>&1 > /tmp/apache_bench/${current_concurrency}.sar.netio.log &
     iostat -x -d 1 2>&1 > /tmp/apache_bench/${current_concurrency}.iostat.netio.log &
     vmstat 1 2>&1 > /tmp/apache_bench/${current_concurrency}.vmstat.netio.log &
+    sleep 3 && lscpu > /tmp/apache_bench/${current_concurrency}.lscpu.log &
 
     run_ab ${current_concurrency} > /tmp/apache_bench/${current_concurrency}.apache.bench.log
 
