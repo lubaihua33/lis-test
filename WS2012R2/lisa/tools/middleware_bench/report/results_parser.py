@@ -333,6 +333,8 @@ class OrionLogsReader(BaseLogsReader):
         log_dict['TestDate'] = summary['date']
         log_dict['GuestOS'] = summary['guest_os']
 
+        self.get_system_info(os.path.abspath(log_file), log_dict)
+
         iops_csv = self.__parse_csv(log_file)
         lat_csv = self.__parse_csv(os.path.join(os.path.dirname(log_file),
                                                 log_dict['TestMode'] + '_lat.csv'))
@@ -415,6 +417,7 @@ class SysbenchLogsReader(BaseLogsReader):
         log_dict['Threads'] = f_match.group(3)
         log_dict['Latency95Percentile_ms'] = 0
         log_dict['RequestsExecutedPerSec'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -480,6 +483,7 @@ class MemcachedLogsReader(BaseLogsReader):
         log_dict['BestOpsPerSec'] = 0
         log_dict['WorstOpsPerSec'] = 0
         log_dict['AverageOpsPerSec'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -563,6 +567,7 @@ class RedisLogsReader(BaseLogsReader):
         log_dict['Payload_bytes'] = 0
         log_dict['SETRRequestsPerSec'] = 0
         log_dict['GETRequestsPerSec'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -633,6 +638,7 @@ class ApacheLogsReader(BaseLogsReader):
         log_dict['RequestsPerSec'] = 0
         log_dict['TransferRate_KBps'] = 0
         log_dict['MeanConnectionTimes_ms'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -716,6 +722,7 @@ class MariadbLogsReader(BaseLogsReader):
         log_dict['DeadlocksPerSec'] = 0
         log_dict['RWRequestsPerSec'] = 0
         log_dict['Latency95Percentile_ms'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -793,6 +800,7 @@ class MongodbLogsReader(BaseLogsReader):
         log_dict['UpdateLatency95Percentile_us'] = 0
         log_dict['ReadFailedOps'] = 0
         log_dict['ReadFailedLatency95Percentile_us'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -875,6 +883,7 @@ class ZookeeperLogsReader(BaseLogsReader):
         log_dict['TotalGetCallsPerSec'] = 0
         log_dict['TotalDeletedCallsPerSec'] = 0
         log_dict['TotalWatchedCallsPerSec'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -942,6 +951,7 @@ class TerasortLogsReader(BaseLogsReader):
         log_dict['ClusterSetup'] = self.cluster_setup
         log_dict['TeragenRecords'] = 0
         log_dict['SortDuration_sec'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1015,6 +1025,7 @@ class TCPLogsReader(BaseLogsReader):
         log_dict['SenderCpuBusyPercent'] = 0
         log_dict['ReceiverCpuBusyPercent'] = 0
         log_dict['ConnectionsCreatedTime'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1145,6 +1156,7 @@ class LatencyLogsReader(BaseLogsReader):
         log_dict['Percentile_99.9'] = 0
         log_dict['Percentile_99.99'] = 0
         log_dict['Percentile_99.999'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1251,6 +1263,7 @@ class UDPLogsReader(BaseLogsReader):
         log_dict['TxThroughput_Gbps'] = 0
         log_dict['DatagramLoss'] = 0
         log_dict['PacketSize_KBytes'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1348,6 +1361,7 @@ class SingleTCPLogsReader(BaseLogsReader):
         log_dict['TxThroughput_Gbps'] = 0
         log_dict['RetransmittedSegments'] = 0
         log_dict['CongestionWindowSize_KB'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1466,6 +1480,7 @@ class StorageLogsReader(BaseLogsReader):
         log_dict['rand_write_cpu_sys'] = 0
         log_dict['rand_write_cpu_ctx'] = 0
         log_dict['rand_write_free_mem'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1594,6 +1609,7 @@ class SQLServerLogsReader(BaseLogsReader):
         log_dict['DataPath'] = self.data_path
         # TODO read scale from Benchcraft settings
         log_dict['ScaleFactor'] = 400
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1652,6 +1668,7 @@ class PostgreSQLLogsReader(BaseLogsReader):
         log_dict['DiskSetup'] = self.disk_setup
         log_dict['DataPath'] = self.data_path
         log_dict['TestMode'] = f_match.group(2).strip()
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1739,6 +1756,7 @@ class SchedulerLogsReader(BaseLogsReader):
         log_dict['Latency_sec'] = None
         log_dict['Latency95thPercentile_us'] = None
         log_dict['Latency99thPercentile_us'] = None
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1812,6 +1830,7 @@ class LAMPWordpressLogsReader(BaseLogsReader):
         log_dict['RequestsPerSec'] = 0
         log_dict['TransferRate_KBps'] = 0
         log_dict['MeanConnectionTimes_ms'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1882,6 +1901,7 @@ class NodejsLogsReader(BaseLogsReader):
         log_dict['TestCaseName'] = self.test_case_name
         log_dict['HostType'] = self.host_type
         log_dict['InstanceSize'] = self.instance_size
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -1948,6 +1968,7 @@ class ElasticsearchLogsReader(BaseLogsReader):
         log_dict['ServiceTime999thPercentile_ms'] = None
         log_dict['Latency99thPercentile_ms'] = None
         log_dict['ServiceTime99thPercentile_ms'] = None
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -2060,6 +2081,7 @@ class KafkaLogsReader(BaseLogsReader):
         log_dict['Latency95Percentile_ms'] = None
         log_dict['Latency99Percentile_ms'] = None
         log_dict['Latency999Percentile_ms'] = None
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
@@ -2130,6 +2152,7 @@ class TensorflowLogsReader(BaseLogsReader):
         log_dict['DataFormat'] = None
         log_dict['Distortions'] = 1
         log_dict['RuntimeSec'] = 0
+        self.get_system_info(os.path.abspath(log_file), log_dict)
 
         summary = self.get_summary_log()
         log_dict['KernelVersion'] = summary['kernel']
