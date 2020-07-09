@@ -681,6 +681,17 @@ class ApacheLogsReader(BaseLogsReader):
                         mean = round((log_dict['MeanConnectionTimes_ms'] + float(
                                 lat.group(2))) / 2, 3)
                         log_dict['MeanConnectionTimes_ms'] = mean
+ 
+        lscpu_file = os.path.join(os.path.dirname(os.path.abspath(log_file)),
+                                     '{}.lscpu.log'.format(log_dict['TestConcurrency']))
+        if os.path.exists(lscpu_file):
+            with open(lscpu_file, 'r') as fl:
+                for line in fl:
+                    cpu_speed = re.match('CPU MHz:\s*([0-9.]+)', line)
+                    if cpu_speed:
+                        log_dict['CpuSpeed_MHZ'] = cpu_speed.group(1).strip()
+                        break
+
         return log_dict
 
 
