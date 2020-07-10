@@ -33,7 +33,7 @@ fi
 
 SERVER="$1"
 USER="$2"
-PORT="11200"
+PORT="21789"
 THREADS=(1 2 4 8 16 32 64 128 256 512)
 max_threads=16
 
