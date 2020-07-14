@@ -38,3 +38,7 @@ echo -e >> ${LOG_FILE}
 echo "=>fdisk -l" >> ${LOG_FILE}
 fdisk -l >> ${LOG_FILE}
 echo -e >> ${LOG_FILE}
+
+echo "cat /proc/cpuinfo" >> ${LOG_FILE}
+cat /proc/cpuinfo >> ${LOG_FILE}
+
