@@ -144,6 +144,19 @@ function get_tx_bytes(){
     echo ${Tx_bytes}
 }
 
+function get_rx_bytes(){
+    local eth=$(ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ip link | grep -vE \"lo|vir|wl|^[^0-9]\" | head -n 1 | awk -F: '{print $ 2}'")
+    # RX bytes:66132495566 (66.1 GB)  TX bytes:3067606320236 (3.0 TB)
+    local Rx_bytes=$(ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ifconfig ${eth} | grep 'RX bytes' | awk -F':' '{print $3}' | awk -F' ' '{print $1}'")
+
+    if [ "x$Rx_bytes" == "x" ]
+    then
+        #RX packets 223558709  bytes 15463202847 (14.4 GiB)
+        Rx_bytes=$(ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ifconfig ${eth} | grep 'RX packets' | awk '{print $ 5}'")
+    fi
+    echo ${Rx_bytes}
+}
+
 function get_tx_pkts(){
     local eth=`ip link | awk -F: '$0 !~ "lo|vir|wl|^[^0-9]"{print $2;getline}' | head -n 1`
     # TX packets:543924452 errors:0 dropped:0 overruns:0 carrier:0
@@ -155,6 +168,19 @@ function get_tx_pkts(){
         Tx_pkts=`ifconfig ${eth}| grep "TX packets"| awk '{print $3}'`
     fi
     echo ${Tx_pkts}
+}
+
+function get_rx_pkts(){
+    local eth=$(ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ip link | grep -vE \"lo|vir|wl|^[^0-9]\" | head -n 1 | awk -F: '{print $ 2}'")
+    # RX packets:543924452 errors:0 dropped:0 overruns:0 carrier:0
+    local Rx_pkts=$(ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ifconfig ${eth} | grep "RX packets" | awk -F':' '{print $ 2}' | awk -F' ' ' {print $ 1}'")
+
+    if [ "x$Rx_pkts" == "x" ]
+    then
+        #RX packets 223558709  bytes 15463202847 (14.4 GiB)
+        Rx_pkts=$(ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "ifconfig ${eth}| grep 'RX packets' | awk '{print $ 3}'")
+    fi
+    echo ${Rx_pkts}
 }
 
 ssh -o StrictHostKeyChecking=no ${USER}@${SERVER} "mkdir /tmp/network${TEST_TYPE}"
@@ -227,6 +253,8 @@ function run_ntttcp ()
 
     previous_tx_bytes=$(get_tx_bytes)
     previous_tx_pkts=$(get_tx_pkts)
+    previous_rx_bytes=$(get_rx_bytes)
+    previous_rx_pkts=$(get_rx_pkts)
     sudo lagscope -s${SERVER} -t60 -H -P -R/tmp/network${TEST_TYPE}/${current_test_threads}_latencies_log.csv > "/tmp/network${TEST_TYPE}/${current_test_threads}_lagscope.log" &
     if [[ ${current_test_type} == "tcp" ]]
     then
@@ -236,10 +264,16 @@ function run_ntttcp ()
     fi
     current_tx_bytes=$(get_tx_bytes)
     current_tx_pkts=$(get_tx_pkts)
+    current_rx_bytes=$(get_rx_bytes)
+    current_rx_pkts=$(get_rx_pkts)
     bytes_new=`(expr ${current_tx_bytes} - ${previous_tx_bytes})`
     pkts_new=`(expr ${current_tx_pkts} - ${previous_tx_pkts})`
+    rx_bytes_new=`(expr ${current_rx_bytes} - ${previous_rx_bytes})`
+    rx_pkts_new=`(expr ${current_rx_pkts} - ${previous_rx_pkts})`
     avg_pkt_size=$(echo "scale=2;${bytes_new}/${pkts_new}/1024" | bc)
-    echo "Average Package Size: ${avg_pkt_size}" >> /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log
+    rx_avg_pkt_size=$(echo "scale=2;${rx_bytes_new}/${rx_pkts_new}/1024" | bc)
+    echo "Sender Average Package Size: ${avg_pkt_size}" >> /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log
+    echo "Receiver Average Package Size: ${rx_avg_pkt_size}" >> /tmp/network${TEST_TYPE}/${current_test_threads}_ntttcp-sender.log
     sleep 30
 }
 

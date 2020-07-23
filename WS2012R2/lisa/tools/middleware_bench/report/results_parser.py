@@ -1053,7 +1053,7 @@ class TCPLogsReader(BaseLogsReader):
                     if throughput:
                         log_dict['Throughput_Gbps'] = throughput.group(1).strip()
                 if not log_dict.get('PacketSize_KBytes', None):
-                    pkg_size = re.match('\s*Average\s*Package\s*Size:\s*([0-9.]+)', x)
+                    pkg_size = re.match('\s*Sender\s*Average\s*Package\s*Size:\s*([0-9.]+)', x)
                     if pkg_size:
                         log_dict['PacketSize_KBytes'] = pkg_size.group(1).strip()
                 if not log_dict.get('SenderCyclesPerByte', None):
